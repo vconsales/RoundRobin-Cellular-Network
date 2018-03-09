@@ -22,7 +22,5 @@ simple FIFOQueue
 {
    	gates:
    	    input inData_p;
-   	    input reqData_p;
-   	    input ackSched_p; // pacchetto schedulato si può rimuovere dalla coda
    	    output outData_p;
 }

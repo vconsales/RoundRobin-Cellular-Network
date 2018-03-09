@@ -27,8 +27,6 @@ simple Scheduler
         int nUsers;
     gates:
         input  inCQISched_p[nUsers];
-        output reqDataSched_p[nUsers]; //porta per richiedere pacchetti alla coda
-        output ackSched_p[nUsers];
         input  inDataSched_p[nUsers]; //la coda invia i pacchetti qui
         output outDataSched_p[nUsers]; //qui escono gli RB diretti all'utente
 }

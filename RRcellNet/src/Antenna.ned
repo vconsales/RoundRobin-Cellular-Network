@@ -38,9 +38,7 @@ module Antenna
         for i=0..nUsers-1 {
             webServer[i].outData_p --> queue[i].inData_p;
             inCQI_p[i] --> scheduler.inCQISched_p[i];
-            queue[i].reqData_p <-- scheduler.reqDataSched_p[i];
             queue[i].outData_p --> scheduler.inDataSched_p[i];
-            queue[i].ackSched_p <-- scheduler.ackSched_p[i];
             scheduler.outDataSched_p[i] -->  outData_p[i]; 
         }
 

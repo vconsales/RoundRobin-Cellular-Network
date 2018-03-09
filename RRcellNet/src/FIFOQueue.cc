@@ -20,8 +20,6 @@ Define_Module(FIFOQueue);
 void FIFOQueue::initialize()
 {
    inData_p = gate("inData_p");
-   reqData_p = gate("reqData_p");
-   ackSched_p = gate("ackSched_p");
    outData_p = gate("outData_p");
 
    EV << getFullPath() << endl;
@@ -33,7 +31,7 @@ void FIFOQueue::handleMessage(cMessage *msg)
     {
       //  EV << "packet queued" << endl;
         queue.insert((cPacket*)msg);
-    } else if ( msg->getArrivalGate() == reqData_p ){
+    } /*else if ( msg->getArrivalGate() == reqData_p ){
         if( !queue.isEmpty() ){
             cPacket *pkt = queue.front();
             send(pkt,outData_p);
@@ -44,7 +42,7 @@ void FIFOQueue::handleMessage(cMessage *msg)
     } else if( msg->getArrivalGate() == ackSched_p) {
         if( !queue.isEmpty() )
             queue.pop();
-    }
+    }*/
 }
 
 cPacket* FIFOQueue::getPacket()

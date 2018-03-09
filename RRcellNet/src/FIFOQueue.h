@@ -27,8 +27,6 @@ class FIFOQueue : public cSimpleModule
 {
   private:
     cGate *inData_p;
-    cGate *reqData_p;
-    cGate *ackSched_p;
     cGate *outData_p;
   protected:
     cPacketQueue queue;
