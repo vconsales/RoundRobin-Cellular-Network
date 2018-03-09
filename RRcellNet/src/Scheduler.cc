@@ -39,8 +39,6 @@ void Scheduler::initialize()
         cModule *m = getModuleByPath(buf);
         FIFOQueue *f = check_and_cast<FIFOQueue *>(m);
         vec_q.push_back(f);
-
-        sendIdUser(i);
     }
    // EV << "scheduler t_beep:" << simTime()+timeSlotPeriod*(nSlotsFrame+1) << endl;
     // 1 slot è fittizio e serve per ricevere i CQI
@@ -97,13 +95,4 @@ Scheduler::~Scheduler(){
 
 int Scheduler::nextUser(){
     return (currentUser+1)%nUsers;
-}
-
-void Scheduler::sendIdUser(int id)
-{
-    cMessage *idMSG = new cMessage("idUserMSG");
-    cMsgPar *idUserPar = new cMsgPar("idUser");
-    idUserPar->setLongValue(id);
-    idMSG->addPar(idUserPar);
-    send(idMSG,vec_outData[id]);
 }

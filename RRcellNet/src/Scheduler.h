@@ -40,7 +40,7 @@ private:
     std::vector<FIFOQueue*> vec_q;
     std::vector<cGate*> vec_outData;
     int nextUser();
-    void sendIdUser(int id);
+
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

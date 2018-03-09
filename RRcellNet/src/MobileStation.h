@@ -26,6 +26,7 @@ using namespace omnetpp;
 class MobileStation : public cSimpleModule
 {
 private:
+    static unsigned int idUser_counter;
     int idUser;
     int nSlotsFrame;
    // double timeSlotPeriod;
