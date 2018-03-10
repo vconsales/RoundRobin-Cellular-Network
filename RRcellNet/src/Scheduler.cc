@@ -43,7 +43,7 @@ void Scheduler::initialize()
    // EV << "scheduler t_beep:" << simTime()+timeSlotPeriod*(nSlotsFrame+1) << endl;
     // 1 slot è fittizio e serve per ricevere i CQI
   //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1), beepSched);
-    scheduleAt(simTime()+(timeFramePeriod/1000), beepSched);
+    scheduleAt(simTime(), beepSched);
 }
 
 void Scheduler::handleMessage(cMessage *msg)

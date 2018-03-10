@@ -32,7 +32,7 @@ void MobileStation::initialize()
   //  EV << "MS time:" << simTime()+timeSlotPeriod*(nSlotsFrame+1) << endl;
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
   //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1),beepMS);
-    scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
+    scheduleAt(simTime(), beepMS);
 }
 
 void MobileStation::handleMessage(cMessage *msg)
