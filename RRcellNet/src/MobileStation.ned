@@ -21,7 +21,7 @@ package rrcellnet;
 simple MobileStation
 {
     parameters:
-        int nSlotsFrame;
+        int nFrameSlots;
         double timeSlotPeriod @unit(ms);
         double timeFramePeriod @unit(ms);
     gates:

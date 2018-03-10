@@ -30,7 +30,7 @@ class Scheduler : public cSimpleModule
 private:
     int nUsers;
     int *CQI_users;
-    int nSlotsFrame;
+    int nFrameSlots;
   //  simtime_t timeSlotPeriod;
     simtime_t timeFramePeriod;
     cMessage *beepSched;

@@ -28,7 +28,7 @@ class MobileStation : public cSimpleModule
 private:
     static unsigned int idUser_counter;
     int idUser;
-    int nSlotsFrame;
+    int nFrameSlots;
    // double timeSlotPeriod;
     simtime_t timeFramePeriod;
     cMessage *beepMS;

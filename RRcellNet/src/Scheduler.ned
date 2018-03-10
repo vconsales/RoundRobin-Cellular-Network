@@ -21,7 +21,7 @@ package rrcellnet;
 simple Scheduler
 {
     parameters:
-        int nSlotsFrame;
+        int nFrameSlots;
         double timeSlotPeriod @unit(ms);
         double timeFramePeriod @unit(ms);
         int nUsers;

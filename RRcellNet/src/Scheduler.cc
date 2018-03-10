@@ -21,14 +21,14 @@ Define_Module(Scheduler);
 void Scheduler::initialize()
 {
     nUsers = par("nUsers");
-    nSlotsFrame = par("nSlotsFrame");
+    nFrameSlots = par("nFrameSlots");
    // timeSlotPeriod = par("timeSlotPeriod");
     timeFramePeriod = par("timeFramePeriod");
     CQI_users = new int[nUsers];
     memset(CQI_users,0,sizeof(int)*nUsers);
 
     currentUser = 0;
-    freeSlots = nSlotsFrame;
+    freeSlots = nFrameSlots;
     beepSched = new cMessage("beepScheduler");
 
     char buf[100];
@@ -68,7 +68,7 @@ void Scheduler::handleMessage(cMessage *msg)
         int nowServingUser = currentUser;
 
         // we need to fill all the RBs
-        int freeRBs = 25;
+        int freeRBs = nFrameSlots;
         while(freeRBs)
         {
             // depending on the (user related) CQI and the RB count

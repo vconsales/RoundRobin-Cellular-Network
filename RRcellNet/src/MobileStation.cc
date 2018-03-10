@@ -23,15 +23,15 @@ void MobileStation::initialize()
 {
   //  idUser = par("idUser");
     beepMS = new cMessage("beepMS");
-    nSlotsFrame = par("nSlotsFrame");
+    nFrameSlots = par("nFrameSlots");
    // timeSlotPeriod = par("timeSlotPeriod");
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
     idUser = idUser_counter++;
-  //  EV << "MS time:" << simTime()+timeSlotPeriod*(nSlotsFrame+1) << endl;
+  //  EV << "MS time:" << simTime()+timeSlotPeriod*(nFrameSlots+1) << endl;
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
-  //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1),beepMS);
+  //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
     scheduleAt(simTime(), beepMS);
 }
 
@@ -48,7 +48,7 @@ void MobileStation::handleMessage(cMessage *msg)
         cqiMSG->addPar(idUserPar);
         cqiMSG->addPar(cqiPar);
         send(cqiMSG,outCQI_p);
-       // scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1),beepMS);
+       // scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
         EV << "pkt received " << msg->getName() << endl;
