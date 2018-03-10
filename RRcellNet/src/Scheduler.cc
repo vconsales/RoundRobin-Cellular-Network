@@ -106,6 +106,7 @@ void Scheduler::handleMessage(cMessage *msg)
             // now we can send all the RBs to the current user
             while(allocatedRbs)
             {
+                //TODO: WE CANNOT NO MORE ASSOCIATE A RESOURCE BLOCK TO A PACKET DUE TO THE SEGMENTATION
                 ResourceBlock *rb = new ResourceBlock(0,curCQI);
                 send(rb,vec_outData[nowServingUser]);
 
