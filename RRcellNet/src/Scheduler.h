@@ -31,7 +31,6 @@ private:
     int nUsers;
     int *CQI_users;
     int nFrameSlots;
-  //  simtime_t timeSlotPeriod;
     simtime_t timeFramePeriod;
     cMessage *beepSched;
     int currentUser;
@@ -39,7 +38,8 @@ private:
     std::vector<FIFOQueue*> vec_q;
     std::vector<cGate*> vec_outData;
     int nextUser();
-
+    void updateCQIs(cMessage *msg);
+    void sendRBs();
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

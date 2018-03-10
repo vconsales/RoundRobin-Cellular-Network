@@ -52,101 +52,13 @@ int integerRoundDivision(const int n, const int d)
 void Scheduler::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        EV << "scheduler self2" << endl;
-
-        // the frame is composed cycling all the users until it is filled.
-        // However if the packets of all users are not enough to fill the frame
-        // we will start an infinite cycle: this variable is used to cycle the user
-        // just one time
-        int remainingUserCycles = nUsers;
-
-        // the user we are working on is currentUser, but we need to cycle the
-        // other users to eventually fill the remaining frame space, without
-        // touching currentUser member
-        int nowServingUser = currentUser;
-
-        // we need to fill all the RBs
-        int freeRBs = nFrameSlots;
-        while(freeRBs)
-        {
-            // depending on the (user related) CQI and the RB count
-            // we can compute the total available space in frame
-            int curCQI = CQI_users[nowServingUser];
-            assert(curCQI!=0);
-            int RBbytes = CQI_B[curCQI];
-            int freeFrameBytes = RBbytes*freeRBs;
-
-            // fetch packet by packet from currentUser queue
-            for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
-                    pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
-            {
-                int pktSize = pkt->getByteLength();
-                EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
-                        << " RBbytes=" << RBbytes <<endl;
-                if(pktSize <= freeFrameBytes)
-                {
-                    freeFrameBytes -= pktSize;
-                    // remove the packet from the queue
-                    vec_q[nowServingUser]->popFront();
-                }
-                else // not schedulable
-                    break;  // we must stop the schedulation because of the FIFO rule
-                            // TODO: PACKET MUST BE REINSERTED AT THE HEAD OF THE QUEUE
-            }
-
-            // if we are here the current user queue is empty.
-            // at this point we have just computed the frame allocation in terms of bytes,
-            // we must convert it in terms of allocated RBs
-            int allocatedFrameSpace = RBbytes*freeRBs - freeFrameBytes;
-            assert(allocatedFrameSpace >= 0);
-
-            // we use the round() function because a partially allocated RB must be considered
-            // as allocated and must not be used by the next user
-            assert(RBbytes!=0);
-            int allocatedRbs = integerRoundDivision(allocatedFrameSpace, RBbytes);
-            EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
-
-            // now we can send all the RBs to the current user
-            while(allocatedRbs)
-            {
-                //TODO: WE CANNOT NO MORE ASSOCIATE A RESOURCE BLOCK TO A PACKET DUE TO THE SEGMENTATION
-                ResourceBlock *rb = new ResourceBlock(0,curCQI);
-                send(rb,vec_outData[nowServingUser]);
-
-                allocatedRbs--;
-                freeRBs--;
-            }
-
-            assert(freeRBs >= 0);
-
-            // we must cycle every user just one time
-            if(--remainingUserCycles == 0)
-                break;
-
-
-            EV << "Scheduler: moving to next user" << endl;
-
-            // we need to fill the frame, so we can fetch the packets from the next user
-            // TODO: THIS IS A RR POLICY. HERE WE CAN CHANGE HOW THE USERS
-            //       ARE CHOOSEN FOR THE REMAINING FRAME SPACE FILLING.
-            nowServingUser = (nowServingUser+1)%nUsers;
-
-        }
-
-        // the next frame composing will work on the next user, following the Round Robin policy.
-        nextUser();
+        sendRBs();
 
         // see you at the next timeslot...
         scheduleAt(simTime()+(timeFramePeriod/1000), beepSched);
 
     } else if( strcmp(msg->getName(),"cqiMSG") == 0 ){
-        cArray parList = msg->getParList();
-        EV <<"parList size:"<< parList.size() << endl;
-        int idUser = ((cMsgPar*)parList[0])->longValue();
-        int CQI = ((cMsgPar*)parList[1])->longValue();
-        CQI_users[idUser] = CQI;
-        EV << "idUser: " << idUser << " CQI:" << CQI << endl;
-        delete msg;
+        updateCQIs(msg);
     }
 }
 
@@ -156,4 +68,102 @@ Scheduler::~Scheduler(){
 
 int Scheduler::nextUser(){
     return currentUser=(currentUser+1)%nUsers;
+}
+
+void Scheduler::updateCQIs(cMessage *msg)
+{
+    cArray parList = msg->getParList();
+   // EV <<"parList size:"<< parList.size() << endl;
+    int idUser = ((cMsgPar*)parList[0])->longValue();
+    int CQI = ((cMsgPar*)parList[1])->longValue();
+    CQI_users[idUser] = CQI;
+    EV << "idUser: " << idUser << " CQI:" << CQI << endl;
+    delete msg;
+}
+
+void Scheduler::sendRBs()
+{
+    EV << "scheduler self2" << endl;
+
+    // the frame is composed cycling all the users until it is filled.
+    // However if the packets of all users are not enough to fill the frame
+    // we will start an infinite cycle: this variable is used to cycle the user
+    // just one time
+    int remainingUserCycles = nUsers;
+
+    // the user we are working on is currentUser, but we need to cycle the
+    // other users to eventually fill the remaining frame space, without
+    // touching currentUser member
+    int nowServingUser = currentUser;
+
+    // we need to fill all the RBs
+    int freeRBs = nFrameSlots;
+    while(freeRBs)
+    {
+        // depending on the (user related) CQI and the RB count
+        // we can compute the total available space in frame
+        int curCQI = CQI_users[nowServingUser];
+        assert(curCQI!=0);
+        int RBbytes = CQI_B[curCQI];
+        int freeFrameBytes = RBbytes*freeRBs;
+
+        // fetch packet by packet from currentUser queue
+        for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
+                pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
+        {
+            int pktSize = pkt->getByteLength();
+            EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
+                    << " RBbytes=" << RBbytes <<endl;
+            if(pktSize <= freeFrameBytes)
+            {
+                freeFrameBytes -= pktSize;
+                // remove the packet from the queue
+                vec_q[nowServingUser]->popFront();
+            }
+            else // not schedulable
+                break;  // we must stop the schedulation because of the FIFO rule
+                        // TODO: PACKET MUST BE REINSERTED AT THE HEAD OF THE QUEUE
+        }
+
+        // if we are here the current user queue is empty.
+        // at this point we have just computed the frame allocation in terms of bytes,
+        // we must convert it in terms of allocated RBs
+        int allocatedFrameSpace = RBbytes*freeRBs - freeFrameBytes;
+        assert(allocatedFrameSpace >= 0);
+
+        // we use the round() function because a partially allocated RB must be considered
+        // as allocated and must not be used by the next user
+        assert(RBbytes!=0);
+        int allocatedRbs = integerRoundDivision(allocatedFrameSpace, RBbytes);
+        EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
+
+        // now we can send all the RBs to the current user
+        while(allocatedRbs)
+        {
+            //TODO: WE CANNOT NO MORE ASSOCIATE A RESOURCE BLOCK TO A PACKET DUE TO THE SEGMENTATION
+            ResourceBlock *rb = new ResourceBlock(0,curCQI);
+            send(rb,vec_outData[nowServingUser]);
+
+            allocatedRbs--;
+            freeRBs--;
+        }
+
+        assert(freeRBs >= 0);
+
+        // we must cycle every user just one time
+        if(--remainingUserCycles == 0)
+            break;
+
+
+        EV << "Scheduler: moving to next user" << endl;
+
+        // we need to fill the frame, so we can fetch the packets from the next user
+        // TODO: THIS IS A RR POLICY. HERE WE CAN CHANGE HOW THE USERS
+        //       ARE CHOOSEN FOR THE REMAINING FRAME SPACE FILLING.
+        nowServingUser = (nowServingUser+1)%nUsers;
+
+    }
+
+    // the next frame composing will work on the next user, following the Round Robin policy.
+    nextUser();
 }
