@@ -17,6 +17,7 @@
 #define __RRCELLNET_MOBILESTATION_H_
 
 #include <omnetpp.h>
+#include "ResourceBlock.h"
 
 using namespace omnetpp;
 
@@ -33,6 +34,12 @@ private:
     cMessage *beepMS;
     cGate *inData_p;
     cGate *outCQI_p;
+
+// statitische
+    uint64_t receivedBytes;
+    uint64_t receivedPacket;
+
+    simsignal_t receivedBytes_s;
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

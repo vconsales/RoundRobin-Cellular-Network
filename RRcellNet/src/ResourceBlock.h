@@ -23,13 +23,13 @@ const int CQI_B[16] = {0,3,3,3,6,11,15,20,25,36,50,63,72,80,93,93};
 
 class ResourceBlock : public cMessage{
 private:
-    int idPkt;
+    int pktId;
     int size;
 public:
     // primo parametro: id del pacchetto originario
     // secondo parametro: CQI
-    ResourceBlock(int idPkt, int CQI);
-    int getIdPacket();
+    ResourceBlock(int pktId, int CQI);
+    int getPacketId();
     int getSizeByte();
     virtual ~ResourceBlock();
 };

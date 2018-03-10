@@ -15,9 +15,9 @@
 
 #include "ResourceBlock.h"
 
-ResourceBlock::ResourceBlock(int idPkt, int CQI) :cMessage("RB", 0)
+ResourceBlock::ResourceBlock(int pktId, int CQI) :cMessage("RB", 0)
 {
-    this->idPkt = idPkt;
+    this->pktId = pktId;
     this->size = CQI_B[CQI]; //lanciare exception in caso di err
 }
 
@@ -30,7 +30,7 @@ int ResourceBlock::getSizeByte()
     return size;
 }
 
-int ResourceBlock::getIdPacket()
+int ResourceBlock::getPacketId()
 {
-    return idPkt;
+    return pktId;
 }

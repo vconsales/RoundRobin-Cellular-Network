@@ -23,6 +23,7 @@ simple MobileStation
     parameters:
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
+        @signal[receivedBytes](type=long);
     gates:
         input  inData_p;
         output outCQI_p;

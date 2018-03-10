@@ -28,15 +28,22 @@ void MobileStation::initialize()
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
     idUser = idUser_counter++;
-  //  EV << "MS time:" << simTime()+timeSlotPeriod*(nFrameSlots+1) << endl;
+
+    receivedPacket = receivedBytes = 0;
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
+
+    receivedBytes_s = registerSignal("receivedBytes");
+
   //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
     scheduleAt(simTime(), beepMS);
 }
 
 void MobileStation::handleMessage(cMessage *msg)
 {
+    int lastId = -1;
     if( msg->isSelfMessage() ){
+        EV << "idUser:" << idUser << " ReceivedBytes: " << receivedBytes << " ReceivedPacket:" << receivedPacket << endl;
+
         cMessage *cqiMSG = new cMessage("cqiMSG");
 
         cMsgPar *idUserPar = new cMsgPar("idUser");
@@ -47,10 +54,15 @@ void MobileStation::handleMessage(cMessage *msg)
         cqiMSG->addPar(idUserPar);
         cqiMSG->addPar(cqiPar);
         send(cqiMSG,outCQI_p);
-       // scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
+
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
-        EV << "pkt received " << msg->getName() << endl;
-        delete msg;
+      //  EV << "pkt received " << msg->getName() << endl;
+        ResourceBlock *rb = check_and_cast<ResourceBlock *>(msg);
+        if( rb->getPacketId() != lastId )
+            ++receivedPacket;
+        receivedBytes += rb->getSizeByte();
+        emit(receivedBytes_s,rb->getSizeByte());
+        lastId = rb->getPacketId();
     }
 }
