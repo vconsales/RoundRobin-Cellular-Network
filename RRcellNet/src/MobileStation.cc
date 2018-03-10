@@ -52,5 +52,6 @@ void MobileStation::handleMessage(cMessage *msg)
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
         EV << "pkt received " << msg->getName() << endl;
+        delete msg;
     }
 }

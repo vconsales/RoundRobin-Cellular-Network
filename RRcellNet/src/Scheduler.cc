@@ -143,6 +143,7 @@ void Scheduler::handleMessage(cMessage *msg)
         int CQI = ((cMsgPar*)parList[1])->longValue();
         CQI_users[idUser] = CQI;
         EV << "idUser: " << idUser << " CQI:" << CQI << endl;
+        delete msg;
     }
 }
 
