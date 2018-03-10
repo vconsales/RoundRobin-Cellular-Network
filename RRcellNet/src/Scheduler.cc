@@ -28,7 +28,6 @@ void Scheduler::initialize()
     memset(CQI_users,0,sizeof(int)*nUsers);
 
     currentUser = 0;
-    freeSlots = nFrameSlots;
     beepSched = new cMessage("beepScheduler");
 
     char buf[100];

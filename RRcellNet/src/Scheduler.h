@@ -35,7 +35,6 @@ private:
     simtime_t timeFramePeriod;
     cMessage *beepSched;
     int currentUser;
-    int freeSlots;
 
     std::vector<FIFOQueue*> vec_q;
     std::vector<cGate*> vec_outData;
