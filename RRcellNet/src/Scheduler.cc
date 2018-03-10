@@ -22,7 +22,6 @@ void Scheduler::initialize()
 {
     nUsers = par("nUsers");
     nFrameSlots = par("nFrameSlots");
-   // timeSlotPeriod = par("timeSlotPeriod");
     timeFramePeriod = par("timeFramePeriod");
     CQI_users = new int[nUsers];
     memset(CQI_users,0,sizeof(int)*nUsers);

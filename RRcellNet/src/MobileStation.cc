@@ -24,7 +24,6 @@ void MobileStation::initialize()
   //  idUser = par("idUser");
     beepMS = new cMessage("beepMS");
     nFrameSlots = par("nFrameSlots");
-   // timeSlotPeriod = par("timeSlotPeriod");
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");

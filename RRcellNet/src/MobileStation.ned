@@ -22,7 +22,6 @@ simple MobileStation
 {
     parameters:
         int nFrameSlots;
-        double timeSlotPeriod @unit(ms);
         double timeFramePeriod @unit(ms);
     gates:
         input  inData_p;

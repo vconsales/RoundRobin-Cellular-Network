@@ -22,7 +22,6 @@ simple Scheduler
 {
     parameters:
         int nFrameSlots;
-        double timeSlotPeriod @unit(ms);
         double timeFramePeriod @unit(ms);
         int nUsers;
     gates:

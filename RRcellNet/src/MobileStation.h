@@ -29,7 +29,6 @@ private:
     static unsigned int idUser_counter;
     int idUser;
     int nFrameSlots;
-   // double timeSlotPeriod;
     simtime_t timeFramePeriod;
     cMessage *beepMS;
     cGate *inData_p;
