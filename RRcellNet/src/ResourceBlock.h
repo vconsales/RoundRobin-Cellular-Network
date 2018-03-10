@@ -19,7 +19,7 @@
 #include <omnetpp.h>
 using namespace omnetpp;
 
-const int CQI_B[16] = {3,3,3,6,11,15,20,25,36,50,63,72,80,93,93};
+const int CQI_B[16] = {0,3,3,3,6,11,15,20,25,36,50,63,72,80,93,93};
 
 class ResourceBlock : public cMessage{
 private:
