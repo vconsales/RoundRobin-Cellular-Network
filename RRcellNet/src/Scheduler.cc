@@ -85,7 +85,11 @@ void Scheduler::handleMessage(cMessage *msg)
                 EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
                         << " RBbytes=" << RBbytes <<endl;
                 if(pktSize <= freeFrameBytes)
+                {
                     freeFrameBytes -= pktSize;
+                    // remove the packet from the queue
+                    vec_q[nowServingUser]->popFront();
+                }
                 else // not schedulable
                     break;  // we must stop the schedulation because of the FIFO rule
                             // TODO: PACKET MUST BE REINSERTED AT THE HEAD OF THE QUEUE
