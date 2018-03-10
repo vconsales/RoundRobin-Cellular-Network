@@ -14,6 +14,7 @@
 // 
 
 #include "Scheduler.h"
+#include <assert.h>
 
 Define_Module(Scheduler);
 
@@ -40,45 +41,101 @@ void Scheduler::initialize()
         FIFOQueue *f = check_and_cast<FIFOQueue *>(m);
         vec_q.push_back(f);
     }
-   // EV << "scheduler t_beep:" << simTime()+timeSlotPeriod*(nSlotsFrame+1) << endl;
-    // 1 slot è fittizio e serve per ricevere i CQI
-  //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1), beepSched);
-    scheduleAt(simTime(), beepSched);
+
+    //TODO: RISOLVERE PROBLEMA DELLA RICEZIONE DI TUTTI I CQI PRIMA DI COMPORRE IL FRAME
+    scheduleAt(simTime()+0.0001f, beepSched);
+}
+
+int integerRoundDivision(const int n, const int d)
+{
+    return ((n < 0) ^ (d < 0)) ? ((n - d/2)/d) : ((n + d/2)/d);
 }
 
 void Scheduler::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        EV << "scheduler self" << endl;
-        while( freeSlots>0 ){
-            int curCQI = CQI_users[currentUser];
-            EV << "currentUser" << currentUser << "curCQI" << curCQI << endl;
-            cPacket *pkt = vec_q[currentUser]->getPacket();
-            EV << "pkt: " << pkt << endl;
-            if( pkt != nullptr ){
-                int pktSize = pkt->getByteLength();
-                int bytesRB = CQI_B[curCQI];
-                int nRBs = pktSize/bytesRB + pktSize%bytesRB;
-                EV <<"pktSize:" << pktSize << "bytesRB" << bytesRB << "nRBs" << nRBs << endl;
-                // da aggiustare. un pacchetto che non può essere trasmesso intero non va schedulato
-                for(int i=0; i<nRBs && freeSlots>0; i++, freeSlots--)
-                {
-                    ResourceBlock *rb = new ResourceBlock(pkt->getId(),curCQI);
-                  //  EV << "send resource block" <<endl;
-                    send(rb,vec_outData[currentUser]);
-                }
+        EV << "scheduler self2" << endl;
 
-                vec_q[currentUser]->popFront();
-            } else { // la coda è vuota
-               // currentUser = nextUser();
-                EV << "pkt=nullptr" << endl;
-                break;
+        // the frame is composed cycling all the users until it is filled.
+        // However if the packets of all users are not enough to fill the frame
+        // we will start an infinite cycle: this variable is used to cycle the user
+        // just one time
+        int remainingUserCycles = nUsers;
+
+        // the user we are working on is currentUser, but we need to cycle the
+        // other users to eventually fill the remaining frame space, without
+        // touching currentUser member
+        int nowServingUser = currentUser;
+
+        // we need to fill all the RBs
+        int freeRBs = 25;
+        while(freeRBs)
+        {
+            // depending on the (user related) CQI and the RB count
+            // we can compute the total available space in frame
+            int curCQI = CQI_users[nowServingUser];
+            assert(curCQI!=0);
+            int RBbytes = CQI_B[curCQI];
+            int freeFrameBytes = RBbytes*freeRBs;
+
+            // fetch packet by packet from currentUser queue
+            for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
+                    pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
+            {
+                int pktSize = pkt->getByteLength();
+                EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
+                        << " RBbytes=" << RBbytes <<endl;
+                if(pktSize <= freeFrameBytes)
+                    freeFrameBytes -= pktSize;
+                else // not schedulable
+                    break;  // we must stop the schedulation because of the FIFO rule
+                            // TODO: PACKET MUST BE REINSERTED AT THE HEAD OF THE QUEUE
             }
+
+            // if we are here the current user queue is empty.
+            // at this point we have just computed the frame allocation in terms of bytes,
+            // we must convert it in terms of allocated RBs
+            int allocatedFrameSpace = RBbytes*freeRBs - freeFrameBytes;
+            assert(allocatedFrameSpace >= 0);
+
+            // we use the round() function because a partially allocated RB must be considered
+            // as allocated and must not be used by the next user
+            assert(RBbytes!=0);
+            int allocatedRbs = integerRoundDivision(allocatedFrameSpace, RBbytes);
+            EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
+
+            // now we can send all the RBs to the current user
+            while(allocatedRbs)
+            {
+                ResourceBlock *rb = new ResourceBlock(0,curCQI);
+                send(rb,vec_outData[nowServingUser]);
+
+                allocatedRbs--;
+                freeRBs--;
+            }
+
+            assert(freeRBs >= 0);
+
+            // we must cycle every user just one time
+            if(--remainingUserCycles == 0)
+                break;
+
+
+            EV << "Scheduler: moving to next user" << endl;
+
+            // we need to fill the frame, so we can fetch the packets from the next user
+            // TODO: THIS IS A RR POLICY. HERE WE CAN CHANGE HOW THE USERS
+            //       ARE CHOOSEN FOR THE REMAINING FRAME SPACE FILLING.
+            nowServingUser = (nowServingUser+1)%nUsers;
+
         }
-        freeSlots = nSlotsFrame;
-        currentUser = nextUser();
-        //scheduleAt(simTime()+(timeSlotPeriod/1000)*(nSlotsFrame+1), beepSched);
+
+        // the next frame composing will work on the next user, following the Round Robin policy.
+        nextUser();
+
+        // see you at the next timeslot...
         scheduleAt(simTime()+(timeFramePeriod/1000), beepSched);
+
     } else if( strcmp(msg->getName(),"cqiMSG") == 0 ){
         cArray parList = msg->getParList();
         EV <<"parList size:"<< parList.size() << endl;
@@ -94,5 +151,5 @@ Scheduler::~Scheduler(){
 }
 
 int Scheduler::nextUser(){
-    return (currentUser+1)%nUsers;
+    return currentUser=(currentUser+1)%nUsers;
 }
