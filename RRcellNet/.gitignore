@@ -31,6 +31,9 @@ local.properties
 .loadpath
 .recommenders
 
+# Qt interface user settings
+simulations/.qtenvrc
+
 # External tool builders
 .externalToolBuilders/
 
