@@ -64,5 +64,7 @@ void MobileStation::handleMessage(cMessage *msg)
         receivedBytes += rb->getSizeByte();
         emit(receivedBytes_s,rb->getSizeByte());
         lastId = rb->getPacketId();
+
+        delete rb;
     }
 }
