@@ -51,10 +51,8 @@ cPacket* FIFOQueue::getPacket()
     return pkt;
 }
 
-bool FIFOQueue::popFront(){
-    if( !queue.isEmpty() ){
-        queue.pop();
-        return true;
-    } else
-        return false;
+cPacket* FIFOQueue::popFront(){
+    if(queue.isEmpty())
+        return nullptr;
+    return queue.pop();
 }

@@ -118,7 +118,7 @@ void Scheduler::sendRBs()
             {
                 freeFrameBytes -= pktSize;
                 // remove the packet from the queue
-                vec_q[nowServingUser]->popFront();
+                delete vec_q[nowServingUser]->popFront();
             }
             else // not schedulable
                 break;  // we must stop the schedulation because of the FIFO rule

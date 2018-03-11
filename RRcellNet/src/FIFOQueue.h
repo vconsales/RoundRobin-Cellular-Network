@@ -34,7 +34,7 @@ class FIFOQueue : public cSimpleModule
     virtual void handleMessage(cMessage *msg);
   public:
     cPacket* getPacket();
-    bool popFront();
+    cPacket* popFront();
 };
 
 #endif
