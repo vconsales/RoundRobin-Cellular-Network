@@ -13,36 +13,24 @@
 // along with this program.  If not, see http://www.gnu.org/licenses/.
 // 
 
-#ifndef __RRCELLNET_MOBILESTATION_H_
-#define __RRCELLNET_MOBILESTATION_H_
+#ifndef FRAMECHUNK_H_
+#define FRAMECHUNK_H_
 
+#include <omnetpp/cmessage.h>
 #include <omnetpp.h>
-#include "FrameChunk.h"
 
 using namespace omnetpp;
 
-/**
- * TODO - Generated class
- */
-class MobileStation : public cSimpleModule
-{
+class FrameChunk: public omnetpp::cMessage {
 private:
-    static unsigned int idUser_counter;
-    int idUser;
-    int nFrameSlots;
-    simtime_t timeFramePeriod;
-    cMessage *beepMS;
-    cGate *inData_p;
-    cGate *outCQI_p;
+    cPacketQueue packet_list;
 
-// statitische
-    uint64_t receivedBytes;
-    uint64_t receivedPacket;
-
-    simsignal_t receivedBytes_s;
-  protected:
-    virtual void initialize();
-    virtual void handleMessage(cMessage *msg);
+public:
+    FrameChunk();
+    void insertPacket(cPacket *pkt);
+    cPacket *extractPacket();
+    unsigned int packetCount();
+    virtual ~FrameChunk();
 };
 
-#endif
+#endif /* FRAMECHUNK_H_ */

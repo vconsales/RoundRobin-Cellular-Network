@@ -58,13 +58,13 @@ void MobileStation::handleMessage(cMessage *msg)
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
       //  EV << "pkt received " << msg->getName() << endl;
-        ResourceBlock *rb = check_and_cast<ResourceBlock *>(msg);
+        FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
+        /*
         if( rb->getPacketId() != lastId )
             ++receivedPacket;
         receivedBytes += rb->getSizeByte();
         emit(receivedBytes_s,rb->getSizeByte());
-        lastId = rb->getPacketId();
-
-        delete rb;
+        lastId = rb->getPacketId();*/
+        delete fchunk;
     }
 }

@@ -15,6 +15,7 @@
 
 #include "Scheduler.h"
 #include <assert.h>
+#include "FrameChunk.h"
 
 Define_Module(Scheduler);
 
@@ -107,6 +108,9 @@ void Scheduler::sendRBs()
         int RBbytes = CQI_B[curCQI];
         int freeFrameBytes = RBbytes*freeRBs;
 
+        // we will send a FrameChunk to the user
+        FrameChunk *fchunk = new FrameChunk();
+
         // fetch packet by packet from currentUser queue
         for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
                 pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
@@ -117,12 +121,11 @@ void Scheduler::sendRBs()
             if(pktSize <= freeFrameBytes)
             {
                 freeFrameBytes -= pktSize;
-                // remove the packet from the queue
-                delete vec_q[nowServingUser]->popFront();
+                // remove the packet from the queue and push it into the FrameChunk
+                fchunk->insertPacket(vec_q[nowServingUser]->popFront());
             }
             else // not schedulable
                 break;  // we must stop the schedulation because of the FIFO rule
-                        // TODO: PACKET MUST BE REINSERTED AT THE HEAD OF THE QUEUE
         }
 
         // if we are here the current user queue is empty.
@@ -137,16 +140,14 @@ void Scheduler::sendRBs()
         int allocatedRbs = integerRoundDivision(allocatedFrameSpace, RBbytes);
         EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
 
-        // now we can send all the RBs to the current user
-        while(allocatedRbs)
-        {
-            //TODO: WE CANNOT NO MORE ASSOCIATE A RESOURCE BLOCK TO A PACKET DUE TO THE SEGMENTATION
-            ResourceBlock *rb = new ResourceBlock(0,curCQI);
-            send(rb,vec_outData[nowServingUser]);
+        freeRBs -= allocatedRbs;
 
-            allocatedRbs--;
-            freeRBs--;
-        }
+        // now we can send the FrameChunk to the current user if it contains at least
+        // one packet (the condition is just for a visual debugging purpose)
+        if(fchunk->packetCount() != 0)
+            send(fchunk, vec_outData[nowServingUser]);
+        else
+            delete fchunk;
 
         assert(freeRBs >= 0);
 
