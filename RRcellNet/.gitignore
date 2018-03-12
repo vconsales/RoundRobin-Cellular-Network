@@ -4,6 +4,9 @@ src/RRcellNet_dbg
 
 /.metadata/
 
+# Related to results
+/.computed/
+
 # Compiled source
 *.o
 *.so
