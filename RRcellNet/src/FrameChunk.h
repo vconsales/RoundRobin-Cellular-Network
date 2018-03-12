@@ -32,6 +32,7 @@ public:
     void insertPacket(cPacket *pkt);
     cPacket *extractPacket();
     unsigned int packetCount();
+    unsigned long int totalCarriedBits();
     virtual ~FrameChunk();
 
     const char* getDisplayString() const;

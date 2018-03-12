@@ -36,6 +36,10 @@ unsigned int FrameChunk::packetCount() {
     return packet_list.getLength();
 }
 
+unsigned long int FrameChunk::totalCarriedBits() {
+    return packet_list.getBitLength();
+}
+
 FrameChunk::~FrameChunk() {
     cPacket *tmp;
     while((tmp=extractPacket()))
