@@ -23,7 +23,15 @@ simple MobileStation
     parameters:
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
-        @signal[receivedBytes](type=long);
+        // throughtput total mean value (scalar type)
+        // TODO: we must discard the warm-up period, NOT IMPLEMENTED FOR NOW
+        @signal[throughputBits](type=double);
+
+        // slotted mean throughput (vector type, x=time, y=bits/s)
+        @signal[slottedThroughputBits](type=double);
+        @statistic[slottedThroughputBits](source "slottedThroughputBits";record=vector;);
+
+        // mean response time (vector type, x=time, y=time)
         @signal[responseTime](type=simtime_t);
         @statistic[responseTime](sorce "responseTime";record=vector;);
     gates:

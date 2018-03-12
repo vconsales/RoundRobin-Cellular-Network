@@ -38,7 +38,8 @@ private:
     uint64_t receivedBytes;
     uint64_t receivedPacket;
 
-    simsignal_t receivedBytes_s;
+    simsignal_t throughputBits_s;
+    simsignal_t slottedThroughputBits_s;
     simsignal_t responseTime_s;
   protected:
     virtual void initialize();

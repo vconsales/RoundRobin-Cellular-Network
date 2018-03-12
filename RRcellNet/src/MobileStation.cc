@@ -34,7 +34,8 @@ void MobileStation::initialize()
     receivedPacket = receivedBytes = 0;
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
 
-    receivedBytes_s = registerSignal("receivedBytes");
+    throughputBits_s = registerSignal("throughputBits");
+    slottedThroughputBits_s = registerSignal("slottedThroughputBits");
     responseTime_s = registerSignal("responseTime");
 
   //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
@@ -61,6 +62,9 @@ void MobileStation::handleMessage(cMessage *msg)
     } else {
         //  EV << "pkt received " << msg->getName() << endl;
         FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
+
+        // slotted throughput
+        emit(slottedThroughputBits_s, fchunk->totalCarriedBits()/timeFramePeriod);
 
         // response time data
         simtime_t end_time = simTime();
