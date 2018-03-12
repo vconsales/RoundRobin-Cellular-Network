@@ -17,7 +17,6 @@
 #define __RRCELLNET_MOBILESTATION_H_
 
 #include <omnetpp.h>
-#include "FrameChunk.h"
 
 using namespace omnetpp;
 
@@ -40,6 +39,7 @@ private:
     uint64_t receivedPacket;
 
     simsignal_t receivedBytes_s;
+    simsignal_t responseTime_s;
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

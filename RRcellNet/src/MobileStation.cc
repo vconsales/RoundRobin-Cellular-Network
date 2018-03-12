@@ -14,6 +14,8 @@
 // 
 
 #include "MobileStation.h"
+#include "FrameChunk.h"
+#include "UserPacket_m.h"
 
 Define_Module(MobileStation);
 
@@ -33,6 +35,7 @@ void MobileStation::initialize()
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
 
     receivedBytes_s = registerSignal("receivedBytes");
+    responseTime_s = registerSignal("responseTime");
 
   //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
     scheduleAt(simTime(), beepMS);
@@ -40,7 +43,6 @@ void MobileStation::initialize()
 
 void MobileStation::handleMessage(cMessage *msg)
 {
-    int lastId = -1;
     if( msg->isSelfMessage() ){
         EV << "idUser:" << idUser << " ReceivedBytes: " << receivedBytes << " ReceivedPacket:" << receivedPacket << endl;
 
@@ -57,14 +59,19 @@ void MobileStation::handleMessage(cMessage *msg)
 
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
-      //  EV << "pkt received " << msg->getName() << endl;
+        //  EV << "pkt received " << msg->getName() << endl;
         FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
-        /*
-        if( rb->getPacketId() != lastId )
-            ++receivedPacket;
-        receivedBytes += rb->getSizeByte();
-        emit(receivedBytes_s,rb->getSizeByte());
-        lastId = rb->getPacketId();*/
+
+        // response time data
+        simtime_t end_time = simTime();
+        for(cPacket *pkt = fchunk->extractPacket(); pkt!=0; pkt = fchunk->extractPacket())
+        {
+            UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
+            emit(responseTime_s, end_time - user_pkt->getStart_time());
+
+            delete user_pkt;
+        }
+
         delete fchunk;
     }
 }

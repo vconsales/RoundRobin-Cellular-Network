@@ -24,6 +24,8 @@ simple MobileStation
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
         @signal[receivedBytes](type=long);
+        @signal[responseTime](type=simtime_t);
+        @statistic[responseTime](sorce "responseTime";record=vector;);
     gates:
         input  inData_p;
         output outCQI_p;
