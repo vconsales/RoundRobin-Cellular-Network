@@ -22,8 +22,9 @@ void WebServer::initialize()
 {
     lambda = par("lambda");
     beep = new cMessage("beep");
-    simtime_t t0 = exponential((1/lambda),0)/1000;//da sistemare il RNG
-    scheduleAt(simTime()+t0, beep);
+
+    // start packet schedule
+    nextPacketSchedule();
 }
 
 void WebServer::handleMessage(cMessage *msg)
@@ -33,12 +34,16 @@ void WebServer::handleMessage(cMessage *msg)
 
         // generation of a new packet
         UserPacket *msg = new UserPacket(NULL, 0);
-        msg->setBitLength(sizePkt*8);
-        msg->setStart_time(simTime());
+        msg->setByteLength(sizePkt);
+        msg->setStart_time(simTime());  // this will be used to compute the response time
         send(msg, "outData_p");
 
         // scheduling next packet generation
-        simtime_t t1 = exponential(1/lambda,0)/1000;
-        scheduleAt(simTime()+t1, beep);
+        nextPacketSchedule();
     }
+}
+
+void WebServer::nextPacketSchedule() {
+    simtime_t interarrival_time = exponential((1/lambda), 0)/1000;
+    scheduleAt(simTime() + interarrival_time, beep);
 }
