@@ -78,6 +78,7 @@ void Scheduler::updateCQIs(cMessage *msg)
     int idUser = ((cMsgPar*)parList[0])->longValue();
     int CQI = ((cMsgPar*)parList[1])->longValue();
     CQI_users[idUser] = CQI;
+    assert(CQI != 0);
     EV << "idUser: " << idUser << " CQI:" << CQI << endl;
     delete msg;
 }
@@ -103,8 +104,14 @@ void Scheduler::sendRBs()
     {
         // depending on the (user related) CQI and the RB count
         // we can compute the total available space in frame
+        assert(nowServingUser >= 0 && nowServingUser < nUsers);
         int curCQI = CQI_users[nowServingUser];
+
+        // ## !! this is an assertion to check that CQI is sent by all the users
         assert(curCQI!=0);
+        CQI_users[nowServingUser] = 0; // current CQI is already in curCQI value
+        // ##
+
         int RBbytes = CQI_B[curCQI];
         int freeFrameBytes = RBbytes*freeRBs;
 
