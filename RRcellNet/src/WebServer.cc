@@ -14,6 +14,7 @@
 // 
 
 #include "WebServer.h"
+#include "UserPacket_m.h"
 
 Define_Module(WebServer);
 
@@ -28,11 +29,15 @@ void WebServer::initialize()
 void WebServer::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-       // cMessage *msg = new cMessage("webserver");
         int sizePkt = uniform(3,75); // da sistemare il RNG
-        cPacket *msg = new cPacket(NULL,0,sizePkt*8);
+
+        // generation of a new packet
+        UserPacket *msg = new UserPacket(NULL, 0);
+        msg->setBitLength(sizePkt*8);
+        msg->setStart_time(simTime());
         send(msg, "outData_p");
-        //EV << "webserver sends pkt" << endl;
+
+        // scheduling next packet generation
         simtime_t t1 = exponential(1/lambda,0)/1000;
         scheduleAt(simTime()+t1, beep);
     }
