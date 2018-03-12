@@ -20,7 +20,11 @@ Define_Module(WebServer);
 
 void WebServer::initialize()
 {
+    // RNGs parameters
     lambda = par("lambda");
+    size_uniform_a = par("size_uniform_a");
+    size_uniform_b = par("size_uniform_b");
+
     beep = new cMessage("beep");
 
     // start packet schedule
@@ -30,7 +34,7 @@ void WebServer::initialize()
 void WebServer::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        int sizePkt = uniform(3,75); // da sistemare il RNG
+        int sizePkt = uniform(size_uniform_a, size_uniform_b, 0); // da sistemare il RNG
 
         // generation of a new packet
         UserPacket *msg = new UserPacket(NULL, 0);

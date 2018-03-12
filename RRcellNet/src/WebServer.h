@@ -27,7 +27,13 @@ class WebServer : public cSimpleModule
 {
 private:
     cMessage *beep;
+
+    // packets rate
     double lambda;
+
+    // uniform distribution packet size parameters
+    unsigned int size_uniform_a;
+    unsigned int size_uniform_b;
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
