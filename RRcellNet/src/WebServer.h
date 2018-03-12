@@ -28,6 +28,10 @@ class WebServer : public cSimpleModule
 private:
     cMessage *beep;
 
+    //RNGs indexes
+    const short RNG_EXP_INTERARRIVAL_INDEX = 0;
+    const short RNG_UNI_PACKETSIZE_INDEX = 1;
+
     // packets rate
     double lambda;
 

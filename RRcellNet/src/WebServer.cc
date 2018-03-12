@@ -34,7 +34,7 @@ void WebServer::initialize()
 void WebServer::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        int sizePkt = uniform(size_uniform_a, size_uniform_b, 0); // da sistemare il RNG
+        int sizePkt = uniform(size_uniform_a, size_uniform_b, RNG_UNI_PACKETSIZE_INDEX); // da sistemare il RNG
 
         // generation of a new packet
         UserPacket *msg = new UserPacket(NULL, 0);
@@ -48,6 +48,6 @@ void WebServer::handleMessage(cMessage *msg)
 }
 
 void WebServer::nextPacketSchedule() {
-    simtime_t interarrival_time = exponential((1/lambda), 0)/1000;
+    simtime_t interarrival_time = exponential((1/lambda), RNG_EXP_INTERARRIVAL_INDEX)/1000;
     scheduleAt(simTime() + interarrival_time, beep);
 }
