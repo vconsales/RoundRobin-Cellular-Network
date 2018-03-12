@@ -109,7 +109,7 @@ void Scheduler::sendRBs()
         int freeFrameBytes = RBbytes*freeRBs;
 
         // we will send a FrameChunk to the user
-        FrameChunk *fchunk = new FrameChunk();
+        FrameChunk *fchunk = new FrameChunk(nUsers - remainingUserCycles, RBbytes);
 
         // fetch packet by packet from currentUser queue
         for(cPacket *pkt = vec_q[nowServingUser]->getPacket();

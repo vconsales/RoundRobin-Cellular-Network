@@ -23,14 +23,18 @@ using namespace omnetpp;
 
 class FrameChunk: public omnetpp::cMessage {
 private:
+    unsigned short frame_offset;
+    unsigned short RB_size;
     cPacketQueue packet_list;
 
 public:
-    FrameChunk();
+    FrameChunk(unsigned short frame_offset, unsigned short RB_size);
     void insertPacket(cPacket *pkt);
     cPacket *extractPacket();
     unsigned int packetCount();
     virtual ~FrameChunk();
+
+    const char* getDisplayString() const;
 };
 
 #endif /* FRAMECHUNK_H_ */

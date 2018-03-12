@@ -15,7 +15,8 @@
 
 #include "FrameChunk.h"
 
-FrameChunk::FrameChunk() : cMessage("FrameChunk"), packet_list() {
+FrameChunk::FrameChunk(unsigned short frame_offset, unsigned short RB_size)
+: cMessage("FrameChunk"), frame_offset(frame_offset), RB_size(RB_size), packet_list() {
 
 }
 
@@ -41,3 +42,7 @@ FrameChunk::~FrameChunk() {
         delete tmp;
 }
 
+const char* FrameChunk::getDisplayString() const
+{
+    return "b=60,10,rect,lightblue,black,1";
+}
