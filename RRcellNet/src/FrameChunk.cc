@@ -42,7 +42,7 @@ unsigned long int FrameChunk::totalCarriedBits() {
 
 FrameChunk::~FrameChunk() {
     cPacket *tmp;
-    while((tmp=extractPacket()))
+    while((tmp=extractPacket())!=nullptr)
         delete tmp;
 }
 
