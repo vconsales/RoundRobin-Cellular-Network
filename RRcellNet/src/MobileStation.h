@@ -26,6 +26,20 @@ using namespace omnetpp;
 class MobileStation : public cSimpleModule
 {
 private:
+    // RNGs indexes
+    const short RNG_CQI_INDEX = 0;
+
+    // CQI random distribution type
+    bool isBinomial;
+
+    // uniform distribution of CQI value
+    const short CQI_UNIFORM_A = 1;
+    const short CQI_UNIFORM_B = 15;
+
+    // binomial distribution of CQI value
+    unsigned int cqi_binomial_n;
+    double cqi_binomial_p;
+
     static unsigned int idUser_counter;
     int idUser;
     int nFrameSlots;
@@ -34,7 +48,7 @@ private:
     cGate *inData_p;
     cGate *outCQI_p;
 
-// statitische
+    // statistics
     uint64_t receivedBytes;
     uint64_t receivedPacket;
 

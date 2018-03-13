@@ -23,13 +23,17 @@ unsigned int MobileStation::idUser_counter = 0;
 
 void MobileStation::initialize()
 {
-  //  idUser = par("idUser");
     beepMS = new cMessage("beepMS");
     nFrameSlots = par("nFrameSlots");
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
     idUser = idUser_counter++;
+
+    // CQI RNG parameters fetch
+    isBinomial = par("isBinomial");
+    cqi_binomial_n = par("cqi_binomial_n");
+    cqi_binomial_p = par("cqi_binomial_p");
 
     receivedPacket = receivedBytes = 0;
     EV << "MS time:" << simTime()+timeFramePeriod << endl;
@@ -52,7 +56,15 @@ void MobileStation::handleMessage(cMessage *msg)
         cMsgPar *idUserPar = new cMsgPar("idUser");
         idUserPar->setLongValue(idUser);
         cMsgPar *cqiPar = new cMsgPar("CQI");
-        cqiPar->setLongValue(intuniform(1,15)); // per ora solo distribuz uniforme
+
+        int randCQI;
+        if(isBinomial)
+            // we add 1 because binomial is non null between 0 and cqi_binomial_n.
+            // we must take into account this variation when choosing cqi_binomial_n
+            randCQI = binomial(cqi_binomial_n, cqi_binomial_p, RNG_CQI_INDEX) + 1;
+        else
+            randCQI = intuniform(CQI_UNIFORM_A, CQI_UNIFORM_B, RNG_CQI_INDEX);
+        cqiPar->setLongValue(randCQI);
 
         cqiMSG->addPar(idUserPar);
         cqiMSG->addPar(cqiPar);

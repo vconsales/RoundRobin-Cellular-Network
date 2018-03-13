@@ -23,6 +23,14 @@ simple MobileStation
     parameters:
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
+
+        // choice between binomial and uniform
+        bool isBinomial;
+
+        // configurable parameters for binomial distribution
+        int cqi_binomial_n;
+		double cqi_binomial_p;
+
         // throughtput total mean value (scalar type)
         // TODO: we must discard the warm-up period, NOT IMPLEMENTED FOR NOW
         @signal[throughputBits](type=double);
