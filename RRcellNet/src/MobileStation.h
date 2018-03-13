@@ -49,9 +49,9 @@ private:
     cGate *outCQI_p;
 
     // statistics
-    uint64_t receivedBytes;
-    uint64_t receivedPacket;
-    unsigned int lastSlotReceibedBytes;
+    unsigned int receivedBytes;
+    unsigned int receivedPacket;
+    unsigned int lastSlotReceivedBits;
 
     simsignal_t throughputBits_s;
     simsignal_t slottedThroughputBits_s;

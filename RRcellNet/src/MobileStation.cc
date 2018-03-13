@@ -28,7 +28,7 @@ void MobileStation::initialize()
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
-    lastSlotReceibedBytes = 0;
+    lastSlotReceivedBits = 0;
     idUser = idUser_counter++;
 
     // CQI RNG parameters fetch
@@ -50,7 +50,7 @@ void MobileStation::initialize()
 void MobileStation::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        EV << "idUser:" << idUser << " ReceivedBytes: " << receivedBytes << " ReceivedPacket:" << receivedPacket << endl;
+        EV << "MobileStation (id=" << idUser << "): generating packet" << endl;
 
         cMessage *cqiMSG = new cMessage("cqiMSG");
 
@@ -72,11 +72,11 @@ void MobileStation::handleMessage(cMessage *msg)
         send(cqiMSG,outCQI_p);
 
         // slotted throughput (of the previous slot)
-        emit(slottedThroughputBits_s, lastSlotReceibedBytes/timeFramePeriod);
+        emit(slottedThroughputBits_s, lastSlotReceivedBits/(timeFramePeriod/1000));
 
         // we expect to receive a FrameChunk in this slot, so if we
         // receive a FrameChunk this value will be updated
-        lastSlotReceibedBytes = 0;
+        lastSlotReceivedBits = 0;
 
         scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
     } else {
@@ -84,7 +84,7 @@ void MobileStation::handleMessage(cMessage *msg)
         FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
 
         // we set the received packet size related to the current slot
-        lastSlotReceibedBytes = fchunk->totalCarriedBits();
+        lastSlotReceivedBits = fchunk->totalCarriedBits();
 
         // response time data
         simtime_t end_time = simTime();
