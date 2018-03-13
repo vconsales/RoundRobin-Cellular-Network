@@ -59,6 +59,7 @@ private:
   protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
+    ~MobileStation();
 };
 
 #endif

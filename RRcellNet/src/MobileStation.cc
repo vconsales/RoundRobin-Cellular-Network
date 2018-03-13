@@ -99,3 +99,9 @@ void MobileStation::handleMessage(cMessage *msg)
         delete fchunk;
     }
 }
+
+MobileStation::~MobileStation()
+{
+    //TODO: This is not so correct.
+    idUser_counter--;
+}
