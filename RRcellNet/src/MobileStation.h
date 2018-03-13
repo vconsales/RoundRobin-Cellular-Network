@@ -51,6 +51,7 @@ private:
     // statistics
     uint64_t receivedBytes;
     uint64_t receivedPacket;
+    unsigned int lastSlotReceibedBytes;
 
     simsignal_t throughputBits_s;
     simsignal_t slottedThroughputBits_s;
