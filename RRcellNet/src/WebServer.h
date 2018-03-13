@@ -42,6 +42,7 @@ protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);
     void nextPacketSchedule();
+    ~WebServer();
 };
 
 #endif

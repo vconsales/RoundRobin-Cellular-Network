@@ -65,6 +65,7 @@ void Scheduler::handleMessage(cMessage *msg)
 
 Scheduler::~Scheduler(){
   delete[] CQI_users;
+  this->cancelAndDelete(beepSched);
 }
 
 int Scheduler::nextUser(){
@@ -79,7 +80,7 @@ void Scheduler::updateCQIs(cMessage *msg)
     int CQI = ((cMsgPar*)parList[1])->longValue();
     CQI_users[idUser] = CQI;
     assert(CQI != 0);
-    EV << "idUser: " << idUser << " CQI:" << CQI << endl;
+    EV << "updateCQIs: idUser=" << idUser << " CQI=" << CQI << endl;
     delete msg;
 }
 

@@ -51,3 +51,7 @@ void WebServer::nextPacketSchedule() {
     simtime_t interarrival_time = exponential((1/lambda), RNG_EXP_INTERARRIVAL_INDEX)/1000;
     scheduleAt(simTime() + interarrival_time, beep);
 }
+
+WebServer::~WebServer() {
+    this->cancelAndDelete(beep);
+}
