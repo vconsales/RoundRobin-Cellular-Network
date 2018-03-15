@@ -120,6 +120,13 @@ void Scheduler::scheduleUsers() {
                     else if(second.userId == this->currentUser)
                         return false;
 
+                    // we want to order users from currentUser to the end and then WRAP
+                    // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
+                    if(first.userId > this->currentUser && second.userId < this->currentUser)
+                        return true;
+                    else if(first.userId < this->currentUser && second.userId > this->currentUser)
+                        return false;
+
                     // else compare IDs
                     return first.userId < second.userId;
                 } );
