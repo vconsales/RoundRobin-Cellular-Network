@@ -28,7 +28,7 @@ using namespace omnetpp;
 class Scheduler : public cSimpleModule
 {
 private:
-    int nUsers;
+    unsigned int nUsers;
     int nFrameSlots;
     simtime_t timeFramePeriod;
     cMessage *beepSched;

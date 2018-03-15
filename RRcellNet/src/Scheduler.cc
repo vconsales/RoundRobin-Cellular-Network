@@ -36,7 +36,7 @@ void Scheduler::initialize()
     beepSched = new cMessage("beepScheduler");
 
     char buf[100];
-    for(int i=0; i<nUsers; i++){
+    for(unsigned int i=0; i<nUsers; i++){
         vec_outData.push_back(gate("outDataSched_p",i));
         EV << "vec_outData[i]: "<< vec_outData[i] << endl;
 
@@ -136,17 +136,16 @@ void Scheduler::sendRBs()
     // the user we are working on is currentUser, but we need to cycle the
     // other users to eventually fill the remaining frame space, without
     // touching currentUser member
-    int nowServingUser = 0;
+    unsigned int nowServingIndex = 0;
 
     // we need to fill all the RBs
     int freeRBs = nFrameSlots;
-    while(freeRBs && nowServingUser < nUsers)
+    while(freeRBs && nowServingIndex < nUsers)
     {
         // depending on the (user related) CQI and the RB count
         // we can compute the total available space in frame
-        assert(nowServingUser >= 0 && nowServingUser < nUsers);
-        int curID = usersVector[nowServingUser].userId;
-        int curCQI = usersVector[nowServingUser].receivedCQI;
+        int curID = usersVector[nowServingIndex].userId;
+        int curCQI = usersVector[nowServingIndex].receivedCQI;
 
         EV << "Scheduler: moving to next user id=" << curID << " cqi=" << curCQI << endl;
 
@@ -161,8 +160,8 @@ void Scheduler::sendRBs()
         FrameChunk *fchunk = new FrameChunk(curID, RBbytes);
 
         // fetch packet by packet from currentUser queue
-        for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
-                pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
+        for(cPacket *pkt = vec_q[curID]->getPacket();
+                pkt != nullptr; pkt = vec_q[curID]->getPacket())
         {
             int pktSize = pkt->getByteLength();
             EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
@@ -171,7 +170,7 @@ void Scheduler::sendRBs()
             {
                 freeFrameBytes -= pktSize;
                 // remove the packet from the queue and push it into the FrameChunk
-                fchunk->insertPacket(vec_q[nowServingUser]->popFront());
+                fchunk->insertPacket(vec_q[curID]->popFront());
             }
             else // not schedulable
                 break;  // we must stop the schedulation because of the FIFO rule
@@ -194,14 +193,14 @@ void Scheduler::sendRBs()
         // now we can send the FrameChunk to the current user if it contains at least
         // one packet (the condition is just for a visual debugging purpose)
         if(fchunk->packetCount() != 0)
-            send(fchunk, vec_outData[nowServingUser]);
+            send(fchunk, vec_outData[curID]);
         else
             delete fchunk;
 
         assert(freeRBs >= 0);
 
         // we need to fill the frame, so we will fetch the packets from the next scheduled user
-        nowServingUser++;
+        nowServingIndex++;
     }
 
     // user vector must be cleared before the next sendRBs method call
