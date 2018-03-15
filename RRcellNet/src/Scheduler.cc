@@ -17,6 +17,9 @@
 #include <assert.h>
 #include "FrameChunk.h"
 
+#include <vector>
+#include <algorithm>
+
 Define_Module(Scheduler);
 
 void Scheduler::initialize()
@@ -24,14 +27,16 @@ void Scheduler::initialize()
     nUsers = par("nUsers");
     nFrameSlots = par("nFrameSlots");
     timeFramePeriod = par("timeFramePeriod");
-    CQI_users = new int[nUsers];
-    memset(CQI_users,0,sizeof(int)*nUsers);
 
+    // scheduler choosen policy for frame filling
+    bestCQIScheduler = par("bestCQIScheduler");
+
+    // we start from the first user, so id 0 user
     currentUser = 0;
     beepSched = new cMessage("beepScheduler");
 
     char buf[100];
-    for(int i=0; i<nUsers; i++){
+    for(unsigned int i=0; i<nUsers; i++){
         vec_outData.push_back(gate("outDataSched_p",i));
         EV << "vec_outData[i]: "<< vec_outData[i] << endl;
 
@@ -64,7 +69,6 @@ void Scheduler::handleMessage(cMessage *msg)
 }
 
 Scheduler::~Scheduler(){
-  delete[] CQI_users;
   this->cancelAndDelete(beepSched);
 }
 
@@ -78,50 +82,93 @@ void Scheduler::updateCQIs(cMessage *msg)
    // EV <<"parList size:"<< parList.size() << endl;
     int idUser = ((cMsgPar*)parList[0])->longValue();
     int CQI = ((cMsgPar*)parList[1])->longValue();
-    CQI_users[idUser] = CQI;
+    rrUserStruct temp(idUser,CQI);
+    usersVector.push_back(temp);
+
     assert(CQI != 0);
     EV << "updateCQIs: idUser=" << idUser << " CQI=" << CQI << endl;
     delete msg;
 }
 
+void Scheduler::scheduleUsers() {
+    // if chosen, sort users using the best-CQI policy
+    if(bestCQIScheduler)
+        std::sort(usersVector.begin(), usersVector.end(),
+                [this](rrUserStruct first, rrUserStruct second) {
+                    // currentUser must be always on top
+                    if(first.userId == this->currentUser)
+                        return true;
+                    else if(second.userId == this->currentUser)
+                        return false;
+
+                    // else compare CQIs
+                    if(first.receivedCQI > second.receivedCQI)
+                        return true;
+                    else if( first.receivedCQI < second.receivedCQI)
+                        return false;
+                    else if(first.userId < second.userId)
+                        return true;
+
+                    return false;} );
+    else
+    // otherwise we will user a fair scheduling
+        std::sort(usersVector.begin(), usersVector.end(),
+                [this](rrUserStruct first, rrUserStruct second) {
+                    // currentUser must be always on top
+                    if(first.userId == this->currentUser)
+                        return true;
+                    else if(second.userId == this->currentUser)
+                        return false;
+
+                    // we want to order users from currentUser to the end and then WRAP
+                    // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
+                    if(first.userId > this->currentUser && second.userId < this->currentUser)
+                        return true;
+                    else if(first.userId < this->currentUser && second.userId > this->currentUser)
+                        return false;
+
+                    // else compare IDs
+                    return first.userId < second.userId;
+                } );
+}
+
 void Scheduler::sendRBs()
 {
-    EV << "scheduler self2" << endl;
+    EV << "scheduler self3" << endl;
 
-    // the frame is composed cycling all the users until it is filled.
-    // However if the packets of all users are not enough to fill the frame
-    // we will start an infinite cycle: this variable is used to cycle the user
-    // just one time
-    int remainingUserCycles = nUsers;
+    // this algorithm will directly cycle users in usersVector list.
+    // the order of served clients is defined by this method by the chosen policy
+    scheduleUsers();
 
     // the user we are working on is currentUser, but we need to cycle the
     // other users to eventually fill the remaining frame space, without
     // touching currentUser member
-    int nowServingUser = currentUser;
+    unsigned int nowServingIndex = 0;
 
     // we need to fill all the RBs
     int freeRBs = nFrameSlots;
-    while(freeRBs)
+    while(freeRBs && nowServingIndex < nUsers)
     {
         // depending on the (user related) CQI and the RB count
         // we can compute the total available space in frame
-        assert(nowServingUser >= 0 && nowServingUser < nUsers);
-        int curCQI = CQI_users[nowServingUser];
+        int curID = usersVector[nowServingIndex].userId;
+        int curCQI = usersVector[nowServingIndex].receivedCQI;
+
+        EV << "Scheduler: moving to next user id=" << curID << " cqi=" << curCQI << endl;
 
         // ## !! this is an assertion to check that CQI is sent by all the users
         assert(curCQI!=0);
-        CQI_users[nowServingUser] = 0; // current CQI is already in curCQI value
         // ##
 
         int RBbytes = CQI_B[curCQI];
         int freeFrameBytes = RBbytes*freeRBs;
 
         // we will send a FrameChunk to the user
-        FrameChunk *fchunk = new FrameChunk(nUsers - remainingUserCycles, RBbytes);
+        FrameChunk *fchunk = new FrameChunk(curID, RBbytes);
 
         // fetch packet by packet from currentUser queue
-        for(cPacket *pkt = vec_q[nowServingUser]->getPacket();
-                pkt != nullptr; pkt = vec_q[nowServingUser]->getPacket())
+        for(cPacket *pkt = vec_q[curID]->getPacket();
+                pkt != nullptr; pkt = vec_q[curID]->getPacket())
         {
             int pktSize = pkt->getByteLength();
             EV << "Scheduler: pkt size=" << pktSize << " freeFrameBytes=" << freeFrameBytes
@@ -130,7 +177,7 @@ void Scheduler::sendRBs()
             {
                 freeFrameBytes -= pktSize;
                 // remove the packet from the queue and push it into the FrameChunk
-                fchunk->insertPacket(vec_q[nowServingUser]->popFront());
+                fchunk->insertPacket(vec_q[curID]->popFront());
             }
             else // not schedulable
                 break;  // we must stop the schedulation because of the FIFO rule
@@ -153,25 +200,18 @@ void Scheduler::sendRBs()
         // now we can send the FrameChunk to the current user if it contains at least
         // one packet (the condition is just for a visual debugging purpose)
         if(fchunk->packetCount() != 0)
-            send(fchunk, vec_outData[nowServingUser]);
+            send(fchunk, vec_outData[curID]);
         else
             delete fchunk;
 
         assert(freeRBs >= 0);
 
-        // we must cycle every user just one time
-        if(--remainingUserCycles == 0)
-            break;
-
-
-        EV << "Scheduler: moving to next user" << endl;
-
-        // we need to fill the frame, so we can fetch the packets from the next user
-        // TODO: THIS IS A RR POLICY. HERE WE CAN CHANGE HOW THE USERS
-        //       ARE CHOOSEN FOR THE REMAINING FRAME SPACE FILLING.
-        nowServingUser = (nowServingUser+1)%nUsers;
-
+        // we need to fill the frame, so we will fetch the packets from the next scheduled user
+        nowServingIndex++;
     }
+
+    // user vector must be cleared before the next sendRBs method call
+    usersVector.clear();
 
     // the next frame composing will work on the next user, following the Round Robin policy.
     nextUser();

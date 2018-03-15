@@ -28,17 +28,28 @@ using namespace omnetpp;
 class Scheduler : public cSimpleModule
 {
 private:
-    int nUsers;
-    int *CQI_users;
+    unsigned int nUsers;
     int nFrameSlots;
     simtime_t timeFramePeriod;
     cMessage *beepSched;
-    int currentUser;
+    unsigned int currentUser;
+
+    bool bestCQIScheduler;
+    struct rrUserStruct{
+        unsigned int userId;
+        unsigned int receivedCQI;
+        rrUserStruct(unsigned int uI, unsigned int rC):userId(uI),receivedCQI(rC){}
+        rrUserStruct(){}
+    };
+    //vector which contains id and cqi for each user
+    std::vector<rrUserStruct> usersVector;
 
     std::vector<FIFOQueue*> vec_q;
     std::vector<cGate*> vec_outData;
+
     int nextUser();
     void updateCQIs(cMessage *msg);
+    void scheduleUsers();
     void sendRBs();
 protected:
     virtual void initialize();

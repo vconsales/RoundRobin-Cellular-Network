@@ -24,6 +24,8 @@ simple Scheduler
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
         int nUsers;
+
+        bool bestCQIScheduler;
     gates:
         input  inCQISched_p[nUsers];
         input  inDataSched_p[nUsers]; //la coda invia i pacchetti qui
