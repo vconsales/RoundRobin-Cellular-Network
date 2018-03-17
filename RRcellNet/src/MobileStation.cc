@@ -23,28 +23,37 @@ unsigned int MobileStation::idUser_counter = 0;
 
 void MobileStation::initialize()
 {
+    idUser = idUser_counter++;
+
+    // beep, parameters and gates
     beepMS = new cMessage("beepMS");
     nFrameSlots = par("nFrameSlots");
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
+
+    // statistic members
+    totalReceivedBits = 0;
     lastSlotReceivedBits = 0;
-    idUser = idUser_counter++;
 
     // CQI RNG parameters fetch
     isBinomial = par("isBinomial");
     cqi_binomial_n = par("cqi_binomial_n");
     cqi_binomial_p = par("cqi_binomial_p");
 
-    receivedPacket = receivedBytes = 0;
-    EV << "MS time:" << simTime()+timeFramePeriod << endl;
-
+    // scalar statistics
     throughputBits_s = registerSignal("throughputBits");
+
+    // vector statistics
     slottedThroughputBits_s = registerSignal("slottedThroughputBits");
     responseTime_s = registerSignal("responseTime");
 
-  //  scheduleAt(simTime()+(timeSlotPeriod/1000)*(nFrameSlots+1),beepMS);
     scheduleAt(simTime(), beepMS);
+}
+
+void MobileStation::finish() {
+    // scalar mean throughput
+    emit(throughputBits_s, totalReceivedBits/(simTime() - getSimulation()->getWarmupPeriod()));
 }
 
 void MobileStation::handleMessage(cMessage *msg)
@@ -85,6 +94,8 @@ void MobileStation::handleMessage(cMessage *msg)
 
         // we set the received packet size related to the current slot
         lastSlotReceivedBits = fchunk->totalCarriedBits();
+
+        totalReceivedBits += fchunk->totalCarriedBits();
 
         // response time data
         simtime_t end_time = simTime();

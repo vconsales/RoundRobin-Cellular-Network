@@ -49,8 +49,7 @@ private:
     cGate *outCQI_p;
 
     // statistics
-    unsigned int receivedBytes;
-    unsigned int receivedPacket;
+    unsigned int totalReceivedBits;
     unsigned int lastSlotReceivedBits;
 
     simsignal_t throughputBits_s;
@@ -58,6 +57,7 @@ private:
     simsignal_t responseTime_s;
   protected:
     virtual void initialize();
+    virtual void finish();
     virtual void handleMessage(cMessage *msg);
     ~MobileStation();
 };

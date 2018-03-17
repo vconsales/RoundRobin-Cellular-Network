@@ -34,6 +34,7 @@ simple MobileStation
         // throughtput total mean value (scalar type)
         // TODO: we must discard the warm-up period, NOT IMPLEMENTED FOR NOW
         @signal[throughputBits](type=double);
+        @statistic[throughputBits](source "throughputBits";record=last;);
 
         // slotted mean throughput (vector type, x=time, y=bits/s)
         @signal[slottedThroughputBits](type=double);
@@ -42,6 +43,7 @@ simple MobileStation
         // mean response time (vector type, x=time, y=time)
         @signal[responseTime](type=simtime_t);
         @statistic[responseTime](sorce "responseTime";record=vector;);
+
     gates:
         input  inData_p;
         output outCQI_p;
