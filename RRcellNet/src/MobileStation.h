@@ -58,6 +58,8 @@ private:
   protected:
     virtual void initialize();
     virtual void finish();
+    void sendCQI();
+    void handleFrameChunk(cMessage *msg);
     virtual void handleMessage(cMessage *msg);
     ~MobileStation();
 };

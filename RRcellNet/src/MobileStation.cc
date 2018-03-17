@@ -56,59 +56,68 @@ void MobileStation::finish() {
     emit(throughputBits_s, totalReceivedBits/(simTime() - getSimulation()->getWarmupPeriod()));
 }
 
+void MobileStation::sendCQI() {
+    EV << "MobileStation (id=" << idUser << "): generating packet" << endl;
+
+    cMessage *cqiMSG = new cMessage("cqiMSG");
+
+    cMsgPar *idUserPar = new cMsgPar("idUser");
+    idUserPar->setLongValue(idUser);
+    cMsgPar *cqiPar = new cMsgPar("CQI");
+
+    int randCQI;
+    if(isBinomial)
+        // we add 1 because binomial is non null between 0 and cqi_binomial_n.
+        // we must take into account this variation when choosing cqi_binomial_n
+        randCQI = binomial(cqi_binomial_n, cqi_binomial_p, RNG_CQI_INDEX) + 1;
+    else
+        randCQI = intuniform(CQI_UNIFORM_A, CQI_UNIFORM_B, RNG_CQI_INDEX);
+    cqiPar->setLongValue(randCQI);
+
+    cqiMSG->addPar(idUserPar);
+    cqiMSG->addPar(cqiPar);
+    send(cqiMSG,outCQI_p);
+
+    // slotted throughput (of the previous slot)
+    emit(slottedThroughputBits_s, lastSlotReceivedBits/(timeFramePeriod/1000));
+
+    // we expect to receive a FrameChunk in this slot, so if we
+    // receive a FrameChunk this value will be updated
+    lastSlotReceivedBits = 0;
+
+    scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
+}
+
+void MobileStation::handleFrameChunk(cMessage *msg) {
+    //  EV << "pkt received " << msg->getName() << endl;
+    FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
+
+    // we set the received packet size related to the current slot
+    lastSlotReceivedBits = fchunk->totalCarriedBits();
+
+    totalReceivedBits += fchunk->totalCarriedBits();
+    EV << "Received " <<  fchunk->totalCarriedBits() << " bits, " << fchunk->totalCarriedBits()/1024 << " bytes" << endl;
+
+    // response time data
+    simtime_t end_time = simTime();
+    for(cPacket *pkt = fchunk->extractPacket(); pkt!=nullptr; pkt = fchunk->extractPacket())
+    {
+        UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
+        emit(responseTime_s, end_time - user_pkt->getStart_time());
+        EV << "packet received bytes=" << pkt->getByteLength() << " bits=" << pkt->getBitLength() << endl;
+
+        delete user_pkt;
+    }
+
+    delete fchunk;
+}
+
 void MobileStation::handleMessage(cMessage *msg)
 {
-    if( msg->isSelfMessage() ){
-        EV << "MobileStation (id=" << idUser << "): generating packet" << endl;
-
-        cMessage *cqiMSG = new cMessage("cqiMSG");
-
-        cMsgPar *idUserPar = new cMsgPar("idUser");
-        idUserPar->setLongValue(idUser);
-        cMsgPar *cqiPar = new cMsgPar("CQI");
-
-        int randCQI;
-        if(isBinomial)
-            // we add 1 because binomial is non null between 0 and cqi_binomial_n.
-            // we must take into account this variation when choosing cqi_binomial_n
-            randCQI = binomial(cqi_binomial_n, cqi_binomial_p, RNG_CQI_INDEX) + 1;
-        else
-            randCQI = intuniform(CQI_UNIFORM_A, CQI_UNIFORM_B, RNG_CQI_INDEX);
-        cqiPar->setLongValue(randCQI);
-
-        cqiMSG->addPar(idUserPar);
-        cqiMSG->addPar(cqiPar);
-        send(cqiMSG,outCQI_p);
-
-        // slotted throughput (of the previous slot)
-        emit(slottedThroughputBits_s, lastSlotReceivedBits/(timeFramePeriod/1000));
-
-        // we expect to receive a FrameChunk in this slot, so if we
-        // receive a FrameChunk this value will be updated
-        lastSlotReceivedBits = 0;
-
-        scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
-    } else {
-        //  EV << "pkt received " << msg->getName() << endl;
-        FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
-
-        // we set the received packet size related to the current slot
-        lastSlotReceivedBits = fchunk->totalCarriedBits();
-
-        totalReceivedBits += fchunk->totalCarriedBits();
-
-        // response time data
-        simtime_t end_time = simTime();
-        for(cPacket *pkt = fchunk->extractPacket(); pkt!=nullptr; pkt = fchunk->extractPacket())
-        {
-            UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
-            emit(responseTime_s, end_time - user_pkt->getStart_time());
-
-            delete user_pkt;
-        }
-
-        delete fchunk;
-    }
+    if(msg->isSelfMessage())
+        sendCQI();
+    else
+        handleFrameChunk(msg);
 }
 
 MobileStation::~MobileStation()
