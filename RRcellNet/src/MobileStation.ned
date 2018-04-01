@@ -40,9 +40,9 @@ simple MobileStation
         @signal[slottedThroughputBits](type=double);
         @statistic[slottedThroughputBits](source "slottedThroughputBits";record=vector;);
 
-        // mean response time (vector type, x=time, y=time)
+        // mean response time (vector type, x=time, y=time + mean)
         @signal[responseTime](type=simtime_t);
-        @statistic[responseTime](sorce "responseTime";record=vector;);
+        @statistic[responseTime](source "responseTime";record=vector,mean;);
 
     gates:
         input  inData_p;
