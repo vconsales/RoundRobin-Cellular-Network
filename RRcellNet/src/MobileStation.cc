@@ -95,7 +95,10 @@ void MobileStation::handleFrameChunk(cMessage *msg) {
     // we set the received packet size related to the current slot
     lastSlotReceivedBits = fchunk->totalCarriedBits();
 
-    totalReceivedBits += fchunk->totalCarriedBits();
+    // statistics must respect the warmup time
+    if(simTime() > getSimulation()->getWarmupPeriod())
+        totalReceivedBits += fchunk->totalCarriedBits();
+
     EV << "Received " <<  fchunk->totalCarriedBits() << " bits, " << fchunk->totalCarriedBits()/1024 << " bytes" << endl;
 
     // response time data
