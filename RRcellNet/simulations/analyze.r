@@ -69,5 +69,45 @@ plotSlideWinAvg(targetvec, 50, mainlabel="User1 Slide Window AVG Response Time",
 #######################################################
 
 
+X11(width=14, height=7)
+scalar_db <- loadDataset("*.sca")
 
+# filter all scalars except for throughputBits:last
+allThroughputBits <- scalar_db$scalars[scalar_db$scalars$name == "throughputBits:last",]
+allThroughputBits$file <- NULL
+allThroughputBits$name <- NULL
+
+# take all repetition rows from runattrs table
+repetitions <- scalar_db$runattrs[scalar_db$runattr$attrname=="repetition",]
+repetitions$attrname <- NULL
+
+# take usertraffic value
+usertraffics <- scalar_db$params[scalar_db$params$paramname=="**.webServer[*].lambda",]
+usertraffics$paramname <- NULL
+
+# merge scalar table with repetitions and usertraffics
+partialMergedScalars <- merge(allThroughputBits, repetitions)
+mergedScalars <- merge(partialMergedScalars, usertraffics)
+
+# rename column to match values (otherwise they will be too generic)
+colnames(mergedScalars)=c("runid","resultkey","module","value","repetition","usertraffic")
+
+agg_clients <- aggregate(list(throughputbits=mergedScalars$value), by = list(module=mergedScalars$module, usertraffic=mergedScalars$usertraffic), mean)
+
+targetmodule = agg_clients[agg_clients$module == "CellularNetwork.users[0]",]
+plot(targetmodule$usertraffic,targetmodule$throughputbits, pch='.')
+
+# compute global antenna traffic summing all client traffics
+agg_globaltraffic <- aggregate(list(throughputbits=agg_clients$throughputbits), by = list(usertraffic=agg_clients$usertraffic), sum)
+agg_globaltraffic$usertraffic <- factor(agg_globaltraffic$usertraffic)
+
+plot(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits, type='n', yaxt = 'n')
+lines(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits, yaxt = 'n')
+abline(max(as.numeric(agg_globaltraffic$throughputbits)),0, col="red")
+
+## use decimal notation for y axis
+globaltrafficTicks = axTicks(2)
+axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+
+## wait for user input (do not close the window after script end)
 b <- scan("stdin", character(), n=1)
