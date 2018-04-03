@@ -37,12 +37,11 @@ plotSlideWinAvg <- function(targetvec, window_size, mainlabel, xlabel, ylabel, y
 require(omnetpp)
 
 setwd("results/")
-db <- loadDataset("*.vec")
+db <- loadDataset("BinomialCQI-usertraffic=1.6-#0.vec")
 rawvec <- loadVectors(db, NULL)
 veclist <- split(rawvec$vectordata, rawvec$vectordata$resultkey)
 
 # window properties
-X11(width=14, height=7)
 X11(width=14, height=7)
 par(mfrow=c(2,2))
 
