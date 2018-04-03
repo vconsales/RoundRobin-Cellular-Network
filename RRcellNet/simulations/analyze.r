@@ -70,7 +70,7 @@ plotSlideWinAvg(targetvec, 50, mainlabel="User1 Slide Window AVG Response Time",
 
 
 X11(width=14, height=7)
-scalar_db <- loadDataset("*.sca")
+scalar_db <- loadDataset("BinomialCQI-*.sca")
 
 # filter all scalars except for throughputBits:last
 allThroughputBits <- scalar_db$scalars[scalar_db$scalars$name == "throughputBits:last",]
