@@ -22,12 +22,11 @@ simple WebServer
 {
     parameters:
 		//interarrival rate (exponential distribution)
-		int lambda;
+		double lambda;
 		// uniform distribution packet size parameters
 		int size_uniform_a;
 		int size_uniform_b;
-		int n = default(15); // binomial parameter n
-		int p = default(0.2); // binomial parameter p
+
     gates:
         output outData_p;
 }
