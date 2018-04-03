@@ -34,6 +34,17 @@ plotSlideWinAvg <- function(targetvec, window_size, mainlabel, xlabel, ylabel, y
 	abline(mean(targetvec$y),0, col="red")
 }
 
+plotUserThroughput <- function(xdata, ydata, mainlabel, xlabel, ylabel) {
+	plot.default(xdata, ydata, type='n', yaxt = 'n', main=mainlabel, xlab=xlabel, ylab=ylabel)
+	lines(xdata, ydata, yaxt = 'n')
+
+	globaltrafficTicks = axTicks(2)
+	axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+
+	# mean constant line
+	abline(max(as.numeric(ydata)),0, col="red")
+}
+
 require(omnetpp)
 
 setwd("results/")
@@ -69,7 +80,7 @@ plotSlideWinAvg(targetvec, 50, mainlabel="User1 Slide Window AVG Response Time",
 #######################################################
 
 
-X11(width=14, height=7)
+######################## PART2 ########################
 scalar_db <- loadDataset("BinomialCQI-*.sca")
 
 # filter all scalars except for throughputBits:last
@@ -93,21 +104,37 @@ mergedScalars <- merge(partialMergedScalars, usertraffics)
 colnames(mergedScalars)=c("runid","resultkey","module","value","repetition","usertraffic")
 
 agg_clients <- aggregate(list(throughputbits=mergedScalars$value), by = list(module=mergedScalars$module, usertraffic=mergedScalars$usertraffic), mean)
+agg_clients$usertraffic <- factor(agg_clients$usertraffic)
 
-targetmodule = agg_clients[agg_clients$module == "CellularNetwork.users[0]",]
-plot(targetmodule$usertraffic,targetmodule$throughputbits, pch='.')
+X11(width=14, height=7)
+par(mfrow=c(1,2))
+
+#plotUserThroughput(targetmodule$usertraffic, targetmodule$throughputbits,
+#		mainlabel=sprintf("user1 Throughput %d",clientindex), xlabel="Rate", ylabel="Throughput")
+for (clientindex in 0:9){
+	targetmodule = agg_clients[agg_clients$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+
+	if(clientindex==0)
+	{
+		plot.default(targetmodule$usertraffic, targetmodule$throughputbits, type='n', yaxt = 'n', ylim=c(0,1500000),
+			mainlabel="Users Throughput", xlabel="Rate", ylabel="Throughput")
+		legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
+			lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+	}
+
+	lines(targetmodule$usertraffic, targetmodule$throughputbits, yaxt = 'n', col=clientindex+1);
+	points(targetmodule$usertraffic, targetmodule$throughputbits, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+}
+
+globaltrafficTicks = axTicks(2)
+axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
 
 # compute global antenna traffic summing all client traffics
 agg_globaltraffic <- aggregate(list(throughputbits=agg_clients$throughputbits), by = list(usertraffic=agg_clients$usertraffic), sum)
 agg_globaltraffic$usertraffic <- factor(agg_globaltraffic$usertraffic)
 
-plot(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits, type='n', yaxt = 'n')
-lines(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits, yaxt = 'n')
-abline(max(as.numeric(agg_globaltraffic$throughputbits)),0, col="red")
-
-## use decimal notation for y axis
-globaltrafficTicks = axTicks(2)
-axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+plotUserThroughput(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits,
+	mainlabel="Global Antenna Throughput", xlabel="Rate", ylabel="Throughput")
 
 ## wait for user input (do not close the window after script end)
 b <- scan("stdin", character(), n=1)
