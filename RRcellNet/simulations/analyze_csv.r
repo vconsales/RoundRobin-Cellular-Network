@@ -16,10 +16,15 @@ plotUserThroughput <- function(xdata, ydata, mainlabel, xlabel, ylabel) {
 	abline(max(as.numeric(ydata)),0, col="red")
 }
 
-BinomialCQI_csv <- read.csv(file="data.csv", header=TRUE, sep=",")
+BinomialCQI_csv <- read.csv(file="data_binom.csv", header=TRUE, sep=",")
+
 AllThroughputBits <- BinomialCQI_csv[BinomialCQI_csv$type=="scalar" & BinomialCQI_csv$name=="throughputBits:last", c("run", "module", "value")]
 colnames(AllThroughputBits)[3] <- "throughput"
 AllThroughputBits$throughput <- as.numeric(as.character(AllThroughputBits$throughput))
+
+AllResponseTimes <- BinomialCQI_csv[BinomialCQI_csv$type=="scalar" & BinomialCQI_csv$name=="responseTime:mean", c("run", "module", "value")]
+colnames(AllResponseTimes)[3] <- "responsetime"
+AllResponseTimes$responsetime <- as.numeric(as.character(AllResponseTimes$responsetime))
 
 AllRepetitions <- BinomialCQI_csv[BinomialCQI_csv$type=="runattr" & BinomialCQI_csv$attrname=="repetition", c("run", "attrvalue")]
 colnames(AllRepetitions)[2] <- "repetition"
@@ -29,12 +34,14 @@ AllUserLambdas <- BinomialCQI_csv[BinomialCQI_csv$type=="itervar" & BinomialCQI_
 colnames(AllUserLambdas)[2] <- "usertraffic"
 AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
 
-temp_merge1 <- merge(AllThroughputBits, AllRepetitions)
-mergedScalars <- merge(temp_merge1, AllUserLambdas)
+temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
+
+## Throughput (on usertraffic variation)
+throughput_mergedScalars <- merge(temp_merge1, AllThroughputBits)
 
 # group by lambda and client. Compute mean and stdev for throughput values
-agg_clients <- do.call(data.frame, aggregate(list(values=mergedScalars$throughput),
-	by = list(module=mergedScalars$module, usertraffic=mergedScalars$usertraffic),
+agg_clients <- do.call(data.frame, aggregate(list(values=throughput_mergedScalars$throughput),
+	by = list(module=throughput_mergedScalars$module, usertraffic=throughput_mergedScalars$usertraffic),
 	function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x)))))
 
 X11(width=14, height=7)
@@ -42,6 +49,7 @@ par(mfrow=c(1,2))
 
 for (clientindex in 0:9){
 	targetmodule = agg_clients[agg_clients$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+	#print(targetmodule)
 	if(clientindex==0)
 	{
 		plot(x=targetmodule$usertraffic, y=targetmodule$values.mean, type='n', yaxt = 'n', ylim=c(0,1500000),
@@ -57,10 +65,36 @@ for (clientindex in 0:9){
 globaltrafficTicks = axTicks(2)
 axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
 
-# compute global antenna traffic summing all client traffics
-agg_globaltraffic <- aggregate(list(throughputbits=agg_clients$values.mean), by = list(usertraffic=agg_clients$usertraffic), sum)
+## Response time (on usertraffic variation)
+responsetime_mergedScalars <- merge(temp_merge1, AllResponseTimes)
 
-plotUserThroughput(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits,
-	mainlabel="Global Antenna Throughput", xlabel="Rate", ylabel="Throughput")
+# group by lambda and client. Compute mean and stdev for responsetime values
+responsetime_agg_clients <- do.call(data.frame, aggregate(list(values=responsetime_mergedScalars$responsetime),
+	by = list(module=responsetime_mergedScalars$module, usertraffic=responsetime_mergedScalars$usertraffic),
+	function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x)))))
+
+for (clientindex in 0:9){
+	targetmodule = responsetime_agg_clients[responsetime_agg_clients$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+	#print(targetmodule)
+	if(clientindex==0)
+	{
+		plot(x=targetmodule$usertraffic, y=targetmodule$values.mean, type='n', ylim=c(0,0.035),
+			mainlabel="Users Response Time", xlabel="Rate", ylabel="Response Time")
+		legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
+			lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+	}
+
+	lines(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', col=clientindex+1);
+	points(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+}
+
+#globaltrafficTicks = axTicks(2)
+#axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+
+# compute global antenna traffic summing all client traffics
+#agg_globaltraffic <- aggregate(list(throughputbits=agg_clients$values.mean), by = list(usertraffic=agg_clients$usertraffic), sum)
+
+#plotUserThroughput(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits,
+#	mainlabel="Global Antenna Throughput", xlabel="Rate", ylabel="Throughput")
 
 b <- scan("stdin", character(), n=1)
