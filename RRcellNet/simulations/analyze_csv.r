@@ -5,88 +5,108 @@ confidence <- function(mean, stdev, n) {
 	return(c("confmin"=down, "confmax"=up))
 }
 
-plotUserThroughput <- function(xdata, ydata, mainlabel, xlabel, ylabel) {
-	plot.default(xdata, ydata, type='n', yaxt = 'n', main=mainlabel, xlab=xlabel, ylab=ylabel)
-	lines(xdata, ydata, yaxt = 'n')
+aggregateMeasures <- function(csvfile) {
+	csvData <- read.csv(file=csvfile, header=TRUE, sep=",")
+
+	AllThroughputBits <- csvData[csvData$type=="scalar" & csvData$name=="throughputBits:last", c("run", "module", "value")]
+	colnames(AllThroughputBits)[3] <- "throughput"
+	AllThroughputBits$throughput <- as.numeric(as.character(AllThroughputBits$throughput))
+
+	AllResponseTimes <- csvData[csvData$type=="scalar" & csvData$name=="responseTime:mean", c("run", "module", "value")]
+	colnames(AllResponseTimes)[3] <- "responsetime"
+	AllResponseTimes$responsetime <- as.numeric(as.character(AllResponseTimes$responsetime))
+
+	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
+	colnames(AllRepetitions)[2] <- "repetition"
+	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
+
+	AllUserLambdas <- csvData[csvData$type=="itervar" & csvData$attrname=="usertraffic", c("run", "attrvalue")]
+	colnames(AllUserLambdas)[2] <- "usertraffic"
+	AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
+
+	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
+
+	## Throughput (on usertraffic variation)
+	throughput_mergedScalars <- merge(temp_merge1, AllThroughputBits)
+
+	# group by lambda and client. Compute mean and stdev for throughput values
+	throughput_agg_clients <- aggregate(list(values=throughput_mergedScalars$throughput),
+		by = list(module=throughput_mergedScalars$module, usertraffic=throughput_mergedScalars$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(throughput_agg_clients)[3] <- "throughput"
+
+	# trasform confidence(...) vectors into columns
+	throughput_agg_clients <- do.call(data.frame, throughput_agg_clients)
+
+	## Response time (on usertraffic variation)
+	responsetime_mergedScalars <- merge(temp_merge1, AllResponseTimes)
+
+	# group by lambda and client. Compute mean and stdev for responsetime values
+	responsetime_agg_clients <- aggregate(list(values=responsetime_mergedScalars$responsetime),
+		by = list(module=responsetime_mergedScalars$module, usertraffic=responsetime_mergedScalars$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(responsetime_agg_clients)[3] <- "responsetime"
+
+	# trasform confidence(...) vectors into columns
+	responsetime_agg_clients <- do.call(data.frame, responsetime_agg_clients)
+
+	# returning the merged dataframe
+	allStats <- merge(throughput_agg_clients, responsetime_agg_clients)
+	return(allStats)
+}
+
+plotAllModulesThroughput <- function(plotdata) {
+	for (clientindex in 0:9){
+		targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+		#print(targetmodule)
+		if(clientindex==0)
+		{
+			plot(x=targetmodule$usertraffic, y=targetmodule$throughput.mean, type='n', yaxt = 'n', ylim=c(0,1500000),
+				mainlabel="Users Throughput", xlabel="Rate", ylabel="Throughput")
+			legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
+				lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+		}
+
+		lines(targetmodule$usertraffic, targetmodule$throughput.mean, yaxt = 'n', col=clientindex+1);
+		points(targetmodule$usertraffic, targetmodule$throughput.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+	}
 
 	globaltrafficTicks = axTicks(2)
 	axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
-
-	# mean constant line
-	abline(max(as.numeric(ydata)),0, col="red")
 }
 
-BinomialCQI_csv <- read.csv(file="data_binom.csv", header=TRUE, sep=",")
+plotAllModulesResponseTime <- function(plotdata) {
+	for (clientindex in 0:9){
+		targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+		#print(targetmodule)
+		if(clientindex==0)
+		{
+			plot(x=targetmodule$usertraffic, y=targetmodule$responsetime.mean, type='n', ylim=c(0,0.035),
+				mainlabel="Users Response Time", xlabel="Rate", ylabel="Response Time")
+			legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
+				lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+		}
 
-AllThroughputBits <- BinomialCQI_csv[BinomialCQI_csv$type=="scalar" & BinomialCQI_csv$name=="throughputBits:last", c("run", "module", "value")]
-colnames(AllThroughputBits)[3] <- "throughput"
-AllThroughputBits$throughput <- as.numeric(as.character(AllThroughputBits$throughput))
+		lines(targetmodule$usertraffic, targetmodule$responsetime.mean, yaxt = 'n', col=clientindex+1);
+		points(targetmodule$usertraffic, targetmodule$responsetime.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+	}
+}
 
-AllResponseTimes <- BinomialCQI_csv[BinomialCQI_csv$type=="scalar" & BinomialCQI_csv$name=="responseTime:mean", c("run", "module", "value")]
-colnames(AllResponseTimes)[3] <- "responsetime"
-AllResponseTimes$responsetime <- as.numeric(as.character(AllResponseTimes$responsetime))
+# load all experiments data from CSVs
+uniformData <- aggregateMeasures("data_uni.csv")
+uniformBestCQIData <- aggregateMeasures("data_uni_bestcqi.csv")
+binomialData <- aggregateMeasures("data_binom.csv")
+binomialBestCQIData <- aggregateMeasures("data_binom_bestcqi.csv")
 
-AllRepetitions <- BinomialCQI_csv[BinomialCQI_csv$type=="runattr" & BinomialCQI_csv$attrname=="repetition", c("run", "attrvalue")]
-colnames(AllRepetitions)[2] <- "repetition"
-AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
-
-AllUserLambdas <- BinomialCQI_csv[BinomialCQI_csv$type=="itervar" & BinomialCQI_csv$attrname=="usertraffic", c("run", "attrvalue")]
-colnames(AllUserLambdas)[2] <- "usertraffic"
-AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
-
-temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
-
-## Throughput (on usertraffic variation)
-throughput_mergedScalars <- merge(temp_merge1, AllThroughputBits)
-
-# group by lambda and client. Compute mean and stdev for throughput values
-agg_clients <- do.call(data.frame, aggregate(list(values=throughput_mergedScalars$throughput),
-	by = list(module=throughput_mergedScalars$module, usertraffic=throughput_mergedScalars$usertraffic),
-	function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x)))))
-
+# open a new window with 1 row x 2 column graphs
 X11(width=14, height=7)
 par(mfrow=c(1,2))
 
-for (clientindex in 0:9){
-	targetmodule = agg_clients[agg_clients$module == sprintf("CellularNetwork.users[%d]",clientindex),]
-	#print(targetmodule)
-	if(clientindex==0)
-	{
-		plot(x=targetmodule$usertraffic, y=targetmodule$values.mean, type='n', yaxt = 'n', ylim=c(0,1500000),
-			mainlabel="Users Throughput", xlabel="Rate", ylabel="Throughput")
-		legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
-			lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
-	}
-
-	lines(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', col=clientindex+1);
-	points(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
-}
-
-globaltrafficTicks = axTicks(2)
-axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+## Throughput (on usertraffic variation)
+plotAllModulesThroughput(binomialData);
 
 ## Response time (on usertraffic variation)
-responsetime_mergedScalars <- merge(temp_merge1, AllResponseTimes)
-
-# group by lambda and client. Compute mean and stdev for responsetime values
-responsetime_agg_clients <- do.call(data.frame, aggregate(list(values=responsetime_mergedScalars$responsetime),
-	by = list(module=responsetime_mergedScalars$module, usertraffic=responsetime_mergedScalars$usertraffic),
-	function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x)))))
-
-for (clientindex in 0:9){
-	targetmodule = responsetime_agg_clients[responsetime_agg_clients$module == sprintf("CellularNetwork.users[%d]",clientindex),]
-	#print(targetmodule)
-	if(clientindex==0)
-	{
-		plot(x=targetmodule$usertraffic, y=targetmodule$values.mean, type='n', ylim=c(0,0.035),
-			mainlabel="Users Response Time", xlabel="Rate", ylabel="Response Time")
-		legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
-			lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
-	}
-
-	lines(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', col=clientindex+1);
-	points(targetmodule$usertraffic, targetmodule$values.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
-}
+plotAllModulesResponseTime(binomialData);
 
 #globaltrafficTicks = axTicks(2)
 #axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
