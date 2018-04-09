@@ -61,7 +61,7 @@ plotAllModulesThroughput <- function(plotdata) {
 		#print(targetmodule)
 		if(clientindex==0)
 		{
-			plot(x=targetmodule$usertraffic, y=targetmodule$throughput.mean, type='n', yaxt = 'n', ylim=c(0,1500000),
+			plot(x=targetmodule$usertraffic, y=targetmodule$throughput.mean, type='n', yaxt = 'n', ylim=c(0,2600000),
 				mainlabel="Users Throughput", xlabel="Rate", ylabel="Throughput")
 			legend("topleft", inset=.05, cex = 1, title="Legend", c("User0","User1","User2","User3","User4","User5","User6","User7","User8","User9"), 
 				lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
@@ -92,6 +92,44 @@ plotAllModulesResponseTime <- function(plotdata) {
 	}
 }
 
+plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
+	targetmodule1 = plotdata1[plotdata1$module == sprintf("CellularNetwork.users[%d]",moduleindex1),]
+	targetmodule2 = plotdata2[plotdata2$module == sprintf("CellularNetwork.users[%d]",moduleindex2),]
+
+	legendvec <- c(
+		sprintf("%s User%d", deparse(substitute(plotdata1)), moduleindex1),
+		sprintf("%s User%d", deparse(substitute(plotdata2)), moduleindex2)
+		)
+
+	## Throughput
+	plot(x=targetmodule1$usertraffic, y=targetmodule1$throughput.mean, type='n', ylim=c(0,1800000),
+		mainlabel="Throughput Comparision", xlab="Rate", ylab="Throughput (bit/s)")
+	legend("topleft", inset=.05, cex = 1, title="Legend", legendvec,
+		lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+
+	lines(targetmodule1$usertraffic, targetmodule1$throughput.mean, yaxt = 'n', col=1);
+	points(targetmodule1$usertraffic, targetmodule1$throughput.mean, yaxt = 'n', pch=1, col=1);
+	points(targetmodule1$usertraffic, targetmodule1$throughput.confmin, yaxt = 'n', pch=1, col=1);
+	points(targetmodule1$usertraffic, targetmodule1$throughput.confmax, yaxt = 'n', pch=1, col=1);
+
+	lines(targetmodule2$usertraffic, targetmodule2$throughput.mean, yaxt = 'n', col=2);
+	points(targetmodule2$usertraffic, targetmodule2$throughput.mean, yaxt = 'n', pch=2, col=2);
+	points(targetmodule2$usertraffic, targetmodule2$throughput.confmin, yaxt = 'n', pch=2, col=2);
+	points(targetmodule2$usertraffic, targetmodule2$throughput.confmax, yaxt = 'n', pch=2, col=2);
+
+	## Resp Time
+	plot(x=targetmodule1$usertraffic, y=targetmodule1$responsetime.mean, type='n', ylim=c(0,0.035),
+		mainlabel="Response Time Comparision", xlab="Rate", ylab="Response Time")
+	legend("topleft", inset=.05, cex = 1, title="Legend", legendvec,
+		lty=c(1,1), lwd=c(2,2), pch=1:10, col=1:10, bg="grey96")
+
+	lines(targetmodule1$usertraffic, targetmodule1$responsetime.mean, yaxt = 'n', col=1);
+	points(targetmodule1$usertraffic, targetmodule1$responsetime.mean, yaxt = 'n', pch=1, col=1);
+
+	lines(targetmodule2$usertraffic, targetmodule2$responsetime.mean, yaxt = 'n', col=2);
+	points(targetmodule2$usertraffic, targetmodule2$responsetime.mean, yaxt = 'n', pch=2, col=2);
+}
+
 # load all experiments data from CSVs
 uniformData <- aggregateMeasures("data_uni.csv")
 uniformBestCQIData <- aggregateMeasures("data_uni_bestcqi.csv")
@@ -103,11 +141,39 @@ X11(width=14, height=7)
 par(mfrow=c(1,2))
 
 ## Throughput (on usertraffic variation)
-plotAllModulesThroughput(binomialData);
+plotAllModulesThroughput(binomialBestCQIData);
 
 ## Response time (on usertraffic variation)
-plotAllModulesResponseTime(binomialData);
+plotAllModulesResponseTime(binomialBestCQIData);
 
+# open a new window with 2 row x 2 column graphs
+X11(width=10, height=8)
+par(mfrow=c(3,2))
+
+plotModuleComparision(uniformData, 0, uniformBestCQIData, 0)
+plotModuleComparision(uniformData, 1, uniformBestCQIData, 1)
+plotModuleComparision(uniformData, 2, uniformBestCQIData, 2)
+plotModuleComparision(uniformData, 3, uniformBestCQIData, 3)
+
+X11(width=10, height=8)
+par(mfrow=c(3,2))
+
+plotModuleComparision(binomialData, 0, binomialBestCQIData, 0)
+plotModuleComparision(binomialData, 1, binomialBestCQIData, 1)
+plotModuleComparision(binomialData, 2, binomialBestCQIData, 2)
+
+X11(width=10, height=8)
+par(mfrow=c(3,2))
+
+plotModuleComparision(binomialData, 3, binomialBestCQIData, 3)
+plotModuleComparision(binomialData, 4, binomialBestCQIData, 4)
+plotModuleComparision(binomialData, 5, binomialBestCQIData, 5)
+
+X11(width=10, height=8)
+par(mfrow=c(3,2))
+
+plotModuleComparision(binomialData, 6, binomialBestCQIData, 6)
+plotModuleComparision(binomialData, 7, binomialBestCQIData, 7)
 #globaltrafficTicks = axTicks(2)
 #axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
 
