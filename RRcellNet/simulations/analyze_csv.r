@@ -130,6 +130,9 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 	points(targetmodule2$usertraffic, targetmodule2$responsetime.mean, yaxt = 'n', pch=2, col=2);
 }
 
+# disable scientific notation
+options(scipen = 999)
+
 # load all experiments data from CSVs
 uniformData <- aggregateMeasures("data_uni.csv")
 uniformBestCQIData <- aggregateMeasures("data_uni_bestcqi.csv")
