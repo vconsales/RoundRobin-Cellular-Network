@@ -109,13 +109,13 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 
 	lines(targetmodule1$usertraffic, targetmodule1$throughput.mean, yaxt = 'n', col=1);
 	points(targetmodule1$usertraffic, targetmodule1$throughput.mean, yaxt = 'n', pch=1, col=1);
-	points(targetmodule1$usertraffic, targetmodule1$throughput.confmin, yaxt = 'n', pch=1, col=1);
-	points(targetmodule1$usertraffic, targetmodule1$throughput.confmax, yaxt = 'n', pch=1, col=1);
+	#points(targetmodule1$usertraffic, targetmodule1$throughput.confmin, yaxt = 'n', pch=1, col=1);
+	#points(targetmodule1$usertraffic, targetmodule1$throughput.confmax, yaxt = 'n', pch=1, col=1);
 
 	lines(targetmodule2$usertraffic, targetmodule2$throughput.mean, yaxt = 'n', col=2);
 	points(targetmodule2$usertraffic, targetmodule2$throughput.mean, yaxt = 'n', pch=2, col=2);
-	points(targetmodule2$usertraffic, targetmodule2$throughput.confmin, yaxt = 'n', pch=2, col=2);
-	points(targetmodule2$usertraffic, targetmodule2$throughput.confmax, yaxt = 'n', pch=2, col=2);
+	#points(targetmodule2$usertraffic, targetmodule2$throughput.confmin, yaxt = 'n', pch=2, col=2);
+	#points(targetmodule2$usertraffic, targetmodule2$throughput.confmax, yaxt = 'n', pch=2, col=2);
 
 	## Resp Time
 	plot(x=targetmodule1$usertraffic, y=targetmodule1$responsetime.mean, type='n', ylim=c(0,0.035),
