@@ -62,6 +62,33 @@ computeAntennaMeasures <- function(clientsdata) {
 	return(agg_globaltraffic)
 }
 
+plotSingleModuleThroughput <- function(plotdata, clientindex) {
+	targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+	targetmodule = targetmodule[order(targetmodule$usertraffic),]
+	#print(targetmodule)
+
+	plot(x=targetmodule$usertraffic, y=targetmodule$throughput.mean, type='n', yaxt = 'n', ylim=c(0,10000000),
+		main="Users Throughput", xlab="Rate", ylab="Throughput (bit/s)")
+
+	lines(targetmodule$usertraffic, targetmodule$throughput.mean, yaxt = 'n', col=clientindex+1);
+	points(targetmodule$usertraffic, targetmodule$throughput.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+
+	globaltrafficTicks = axTicks(2)
+	axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
+}
+
+plotSingleModuleResponseTime <- function(plotdata, clientindex) {
+	targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
+	targetmodule = targetmodule[order(targetmodule$usertraffic),]
+	#print(targetmodule)
+
+	plot(x=targetmodule$usertraffic, y=targetmodule$responsetime.mean, type='n', ylim=c(0,2.435),
+		main="Users Response Time", xlab="Rate", ylab="Response Time (ms)")
+
+	lines(targetmodule$usertraffic, targetmodule$responsetime.mean, yaxt = 'n', col=clientindex+1);
+	points(targetmodule$usertraffic, targetmodule$responsetime.mean, yaxt = 'n', pch=clientindex+1, col=clientindex+1);
+}
+
 plotAllModulesThroughput <- function(plotdata) {
 	for (clientindex in 0:9){
 		targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
@@ -139,6 +166,20 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 
 # disable scientific notation
 options(scipen = 999)
+
+## REGRESSION TEST
+regressionTestData <- aggregateMeasures("data_regr.csv")
+
+# open a new window with 1 row x 2 column graphs
+X11(width=14, height=7)
+par(mfrow=c(1,2))
+
+## Throughput (on usertraffic variation)
+plotSingleModuleThroughput(regressionTestData, 0);
+
+## Response time (on usertraffic variation)
+plotSingleModuleResponseTime(regressionTestData, 0);
+
 
 # load all experiments data from CSVs
 uniformData <- aggregateMeasures("data_uni.csv")
