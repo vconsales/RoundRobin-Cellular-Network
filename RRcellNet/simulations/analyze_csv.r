@@ -55,6 +55,13 @@ aggregateMeasures <- function(csvfile) {
 	return(allStats)
 }
 
+computeAntennaMeasures <- function(clientsdata) {
+	# compute global antenna traffic summing all client traffics
+	agg_globaltraffic <- aggregate(list(antennathroughput=clientsdata$throughput.mean), by = list(usertraffic=clientsdata$usertraffic), sum)
+
+	return(agg_globaltraffic)
+}
+
 plotAllModulesThroughput <- function(plotdata) {
 	for (clientindex in 0:9){
 		targetmodule = plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex),]
@@ -151,7 +158,7 @@ plotAllModulesResponseTime(binomialBestCQIData);
 
 # open a new window with 2 row x 2 column graphs
 X11(width=10, height=8)
-par(mfrow=c(3,2))
+par(mfrow=c(4,2))
 
 plotModuleComparision(uniformData, 0, uniformBestCQIData, 0)
 plotModuleComparision(uniformData, 1, uniformBestCQIData, 1)
@@ -180,9 +187,33 @@ plotModuleComparision(binomialData, 7, binomialBestCQIData, 7)
 #globaltrafficTicks = axTicks(2)
 #axis(2, at = globaltrafficTicks, labels = formatC(globaltrafficTicks, format = 'd'))
 
-# compute global antenna traffic summing all client traffics
-#agg_globaltraffic <- aggregate(list(throughputbits=agg_clients$values.mean), by = list(usertraffic=agg_clients$usertraffic), sum)
 
+antennaUniform <- computeAntennaMeasures(uniformData)
+antennaUniformBestCQI <- computeAntennaMeasures(uniformBestCQIData)
+antennaBinomial <- computeAntennaMeasures(binomialData)
+antennaBinomialBestCQI <- computeAntennaMeasures(binomialBestCQIData)
+
+X11()
+par(mfrow=c(1,1))
+plot(antennaUniform$usertraffic, antennaUniform$antennathroughput, type='n', xlim=c(0,9), ylim=c(0,9500000))
+points(antennaUniform$usertraffic, antennaUniform$antennathroughput, col=2)
+lines(antennaUniform$usertraffic, antennaUniform$antennathroughput, col=2)
+text(4.1, max(antennaUniform), round(max(antennaUniform)), col=2, pos=3, cex= 0.7)
+
+lines(antennaUniformBestCQI$usertraffic, antennaUniformBestCQI$antennathroughput, col=3)
+points(antennaUniformBestCQI$usertraffic, antennaUniformBestCQI$antennathroughput, col=3)
+text(4.1, max(antennaUniformBestCQI), round(max(antennaUniformBestCQI)), col=3, pos=3, cex= 0.7)
+
+points(antennaBinomial$usertraffic, antennaBinomial$antennathroughput, col=4)
+lines(antennaBinomial$usertraffic, antennaBinomial$antennathroughput, col=4)
+text(8.1, max(antennaBinomial), round(max(antennaBinomial)), col=4, pos=3, cex= 0.7)
+
+lines(antennaBinomialBestCQI$usertraffic, antennaBinomialBestCQI$antennathroughput, col=5)
+points(antennaBinomialBestCQI$usertraffic, antennaBinomialBestCQI$antennathroughput, col=5)
+text(8.1, max(antennaBinomialBestCQI), round(max(antennaBinomialBestCQI)), col=5, pos=3, cex= 0.7)
+
+legend("topleft", inset=.05, cex = 1, title="Legend", c("unif1","unif2", "binom1", "binom2"),
+		lty=c(1,1), lwd=c(2,2), pch=1:4, col=2:5, bg="grey96")
 #plotUserThroughput(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits,
 #	mainlabel="Global Antenna Throughput", xlabel="Rate", ylabel="Throughput")
 
