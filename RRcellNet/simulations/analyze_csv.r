@@ -258,4 +258,7 @@ legend("topleft", inset=.05, cex = 1, title="Legend", c("unif1","unif2", "binom1
 #plotUserThroughput(agg_globaltraffic$usertraffic, agg_globaltraffic$throughputbits,
 #	mainlabel="Global Antenna Throughput", xlabel="Rate", ylabel="Throughput")
 
-b <- scan("stdin", character(), n=1)
+cat("Press [enter] to close")
+a <- readLines("stdin", n=1);
+
+invisible(dev.off())
