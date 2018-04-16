@@ -226,7 +226,7 @@ antennaBinomialBestCQI <- computeAntennaMeasures(binomialBestCQIData)
 
 antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
-ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput, colour=scenario, group=scenario)) +
+antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput, colour=scenario, group=scenario)) +
 	geom_point() +
 	geom_line() +
 	geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput==max(antennaUniform$antennathroughput),
@@ -238,6 +238,7 @@ ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput, colour=scenario, grou
 	geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput==max(antennaBinomialBestCQI$antennathroughput),
 		floor(max(antennaBinomialBestCQI$antennathroughput)), '')), hjust=0.5, vjust=-0.5)
 
+multiplot(antenna_graph)
 waitForClick()
 
 invisible(dev.off())
