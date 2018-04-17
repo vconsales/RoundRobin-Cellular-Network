@@ -24,6 +24,7 @@ void WebServer::initialize()
     lambda = par("lambda");
     size_uniform_a = par("size_uniform_a");
     size_uniform_b = par("size_uniform_b");
+    constantRate = par("constantRate");
 
     beep = new cMessage("beep");
 
@@ -34,7 +35,7 @@ void WebServer::initialize()
 void WebServer::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        int sizePkt = uniform(size_uniform_a, size_uniform_b, RNG_UNI_PACKETSIZE_INDEX); // da sistemare il RNG
+        int sizePkt = uniform(size_uniform_a, size_uniform_b, RNG_UNI_PACKETSIZE_INDEX);
 
         // generation of a new packet
         UserPacket *msg = new UserPacket(NULL, 0);
@@ -48,7 +49,13 @@ void WebServer::handleMessage(cMessage *msg)
 }
 
 void WebServer::nextPacketSchedule() {
-    simtime_t interarrival_time = exponential((1/lambda), RNG_EXP_INTERARRIVAL_INDEX)/1000;
+    simtime_t interarrival_time;
+
+    if( constantRate )
+        interarrival_time =1/(lambda*1000);
+    else
+        interarrival_time = exponential((1/lambda), RNG_EXP_INTERARRIVAL_INDEX)/1000;
+
     scheduleAt(simTime() + interarrival_time, beep);
 }
 

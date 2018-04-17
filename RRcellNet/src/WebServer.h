@@ -38,6 +38,9 @@ private:
     // uniform distribution packet size parameters
     unsigned int size_uniform_a;
     unsigned int size_uniform_b;
+
+    // used to validate the model
+    bool constantRate;
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

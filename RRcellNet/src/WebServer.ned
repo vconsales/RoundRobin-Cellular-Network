@@ -26,7 +26,8 @@ simple WebServer
 		// uniform distribution packet size parameters
 		int size_uniform_a;
 		int size_uniform_b;
-
+		// used just during validation phase
+		bool constantRate;
     gates:
         output outData_p;
 }
