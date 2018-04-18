@@ -1,3 +1,4 @@
+library(ineq)
 library(ggplot2)
 library(gridExtra)
 library(grid)
@@ -168,6 +169,72 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 	plotdouble_singlelegend(plot_th, plot_rt)
 }
 
+plotLorentzCurvePerRate <- function(plotdata, clientratemin, clientratemax, clientratestep) {
+	cumulativedf <- data.frame();
+	for(rate in seq(clientratemin, clientratemax, by=clientratestep))
+	{
+		targetrate <- plotdata[plotdata$usertraffic==rate,]
+		lcdata <- Lc(targetrate$throughput.mean)
+		lcdataframe <- data.frame(lcdata[1], lcdata[2], clientrate=rep(rate, length(lcdata$p)))
+		# if first iteration
+		if(rate == clientratemin)
+			cumulativedf <- lcdataframe
+		else
+			cumulativedf <- rbind(cumulativedf, lcdataframe)
+	}
+
+	resplot <- ggplot(cumulativedf, aes(x=p, y=L, color=clientrate, group=clientrate)) +
+		geom_abline() +
+		geom_line() + scale_color_gradient(low="#3fc601", high="#ff0f0f") +
+		ggtitle(sprintf("Lorentz Curve Per Rate Throughputs (%s)", deparse(substitute(plotdata)))) +
+		theme(plot.title = element_text(hjust = 0.5))
+
+	multiplot(resplot)
+}
+
+plotLorentzCurvePerRateResponseTimes <- function(plotdata, clientratemin, clientratemax, clientratestep) {
+	cumulativedf <- data.frame();
+	for(rate in seq(clientratemin, clientratemax, by=clientratestep))
+	{
+		targetrate <- plotdata[plotdata$usertraffic==rate,]
+		lcdata <- Lc(targetrate$responsetime.mean)
+		lcdataframe <- data.frame(lcdata[1], lcdata[2], clientrate=rep(rate, length(lcdata$p)))
+		# if first iteration
+		if(rate == clientratemin)
+			cumulativedf <- lcdataframe
+		else
+			cumulativedf <- rbind(cumulativedf, lcdataframe)
+	}
+
+	resplot <- ggplot(cumulativedf, aes(x=p, y=L, color=clientrate, group=clientrate)) +
+		geom_abline() +
+		geom_line() + scale_color_gradient(low="#3fc601", high="#ff0f0f") +
+		ggtitle(sprintf("Lorentz Curve Per Rate Response Times (%s)", deparse(substitute(plotdata)))) +
+		theme(plot.title = element_text(hjust = 0.5))
+
+
+	multiplot(resplot)
+}
+
+plotLorentzCurveComparision <- function(plotdata1, plotdata2, clientrate) {
+	targetrate1 <- plotdata1[plotdata1$usertraffic==clientrate,]
+	lcdata1 <- Lc(targetrate1$throughput.mean)
+
+	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
+	lcdata2 <- Lc(targetrate2$throughput.mean)
+
+	lcplotdata <- rbind(data.frame(lcdata1[1], lcdata1[2], dataset=rep(deparse(substitute(plotdata1)), length(lcdata1$p))),
+						data.frame(lcdata2[1], lcdata2[2], dataset=rep(deparse(substitute(plotdata2)), length(lcdata2$p))))
+
+	resplot <- ggplot(lcplotdata, aes(x=p, y=L, color=dataset, group=dataset)) +
+		geom_abline() +
+		geom_line() +
+		ggtitle(sprintf("Lorentz Curve Throughput Comparision (Rate = %s)", clientrate)) +
+		theme(plot.title = element_text(hjust = 0.5))
+
+	multiplot(resplot)
+}
+
 # disable scientific notation
 options(scipen = 999)
 
@@ -202,6 +269,38 @@ plotAllModulesStatistics(binomialData)
 waitForClick()
 plotAllModulesStatistics(binomialBestCQIData)
 waitForClick()
+
+plotLorentzCurvePerRate(uniformData, 0.1, 4.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRate(uniformBestCQIData, 0.1, 4.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRateResponseTimes(uniformData, 0.1, 4.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRateResponseTimes(uniformBestCQIData, 0.1, 4.1, 0.5)
+waitForClick()
+
+plotLorentzCurvePerRate(binomialData, 0.1, 8.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRate(binomialBestCQIData, 0.1, 8.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRateResponseTimes(binomialData, 0.1, 8.1, 0.5)
+waitForClick()
+plotLorentzCurvePerRateResponseTimes(binomialBestCQIData, 0.1, 8.1, 0.5)
+waitForClick()
+
+# Lorentz curve comparision per rate (binomial, binomialbestcqi)
+for(rate in seq(0.6, 4.1, by=0.5))
+{
+	plotLorentzCurveComparision(uniformData, uniformBestCQIData, rate)
+	waitForClick()
+}
+
+# Lorentz curve comparision per rate (uniform, uniformbestcqi)
+for(rate in seq(0.6, 8.1, by=0.5))
+{
+	plotLorentzCurveComparision(binomialData, binomialBestCQIData, rate)
+	waitForClick()
+}
 
 # plot user statistics for uniform and uniform bestcqi scenario
 for(clientindex in 0:9)
