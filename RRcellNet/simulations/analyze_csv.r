@@ -106,12 +106,46 @@ aggregateMeasures <- function(csvfile) {
 	return(allStats)
 }
 
-computeAntennaMeasures <- function(clientsdata) {
-	# compute global antenna traffic summing all client traffics
-	agg_globaltraffic <- aggregate(list(antennathroughput=clientsdata$throughput.mean),
-							by = list(usertraffic=clientsdata$usertraffic, scenario=clientsdata$scenario), sum)
+aggregateAntennaMeasures <- function(csvfile) {
+	csvData <- read.csv(file=csvfile, header=TRUE, sep=",")
 
-	return(agg_globaltraffic)
+	AllThroughputBits <- csvData[csvData$type=="scalar" & csvData$name=="throughputBits:last", c("run", "module", "value")]
+	colnames(AllThroughputBits)[3] <- "throughput"
+	AllThroughputBits$throughput <- as.numeric(as.character(AllThroughputBits$throughput))
+
+	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
+	colnames(AllRepetitions)[2] <- "repetition"
+	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
+
+	AllUserLambdas <- csvData[csvData$type=="itervar" & csvData$attrname=="usertraffic", c("run", "attrvalue")]
+	colnames(AllUserLambdas)[2] <- "usertraffic"
+	AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
+
+	AllConfigNames <- csvData[csvData$type=="runattr" & csvData$attrname=="configname", c("run", "attrvalue")]
+	colnames(AllConfigNames)[2] <- "scenario"
+
+	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
+	temp_merge2 <- merge(temp_merge1, AllConfigNames)
+
+	## Throughput (on usertraffic variation)
+	throughput_mergedScalars <- merge(temp_merge2, AllThroughputBits)
+
+	throughput_agg_antenna <- aggregate(list(values=throughput_mergedScalars$throughput),
+		by = list(scenario=throughput_mergedScalars$scenario, usertraffic=throughput_mergedScalars$usertraffic, repetition=throughput_mergedScalars$repetition),
+		sum)
+	colnames(throughput_agg_antenna)[4] <- "antennathroughput"
+
+	# group by lambda and client. Compute mean and stdev for throughput values
+	throughput_agg <- aggregate(list(values=throughput_agg_antenna$antennathroughput),
+		by = list(scenario=throughput_agg_antenna$scenario, usertraffic=throughput_agg_antenna$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(throughput_agg)[3] <- "antennathroughput"
+
+	# trasform confidence(...) vectors into columns
+	throughput_agg <- do.call(data.frame, throughput_agg)
+
+	# returning the merged dataframe
+	return(throughput_agg)
 }
 
 plotSingleModuleThroughput <- function(plotdata, clientindex) {
@@ -318,24 +352,24 @@ for(clientindex in 0:9)
 
 # ANTENNA STATISTICS
 
-antennaUniform <- computeAntennaMeasures(uniformData)
-antennaUniformBestCQI <- computeAntennaMeasures(uniformBestCQIData)
-antennaBinomial <- computeAntennaMeasures(binomialData)
-antennaBinomialBestCQI <- computeAntennaMeasures(binomialBestCQIData)
+antennaUniform <- aggregateAntennaMeasures("data_uni.csv")
+antennaUniformBestCQI <- aggregateAntennaMeasures("data_uni_bestcqi.csv")
+antennaBinomial <- aggregateAntennaMeasures("data_binom.csv")
+antennaBinomialBestCQI <- aggregateAntennaMeasures("data_binom_bestcqi.csv")
 
 antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
-antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput, colour=scenario, group=scenario)) +
-	geom_point() +
+antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
 	geom_line() +
-	geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput==max(antennaUniform$antennathroughput),
-		floor(max(antennaUniform$antennathroughput)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput==max(antennaUniformBestCQI$antennathroughput),
-		floor(max(antennaUniformBestCQI$antennathroughput)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput==max(antennaBinomial$antennathroughput),
-		floor(max(antennaBinomial$antennathroughput)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput==max(antennaBinomialBestCQI$antennathroughput),
-		floor(max(antennaBinomialBestCQI$antennathroughput)), '')), hjust=0.5, vjust=-0.5)
+	geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
+	geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
+		floor(max(antennaUniform$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+	geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
+		floor(max(antennaUniformBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+	geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
+		floor(max(antennaBinomial$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+	geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
+		floor(max(antennaBinomialBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5)
 
 multiplot(antenna_graph)
 waitForClick()
