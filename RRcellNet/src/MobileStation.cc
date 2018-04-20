@@ -28,6 +28,8 @@ void MobileStation::initialize()
     // beep, parameters and gates
     beepMS = new cMessage("beepMS");
     nFrameSlots = par("nFrameSlots");
+    validationCQI = par("validationCQI");
+    fixedCQI = par("fixedCQI");
     timeFramePeriod = par("timeFramePeriod");
     inData_p = gate("inData_p");
     outCQI_p = gate("outCQI_p");
@@ -66,12 +68,17 @@ void MobileStation::sendCQI() {
     cMsgPar *cqiPar = new cMsgPar("CQI");
 
     int randCQI;
-    if(isBinomial)
-        // we add 1 because binomial is non null between 0 and cqi_binomial_n.
-        // we must take into account this variation when choosing cqi_binomial_n
-        randCQI = binomial(cqi_binomial_n, cqi_binomial_p, RNG_CQI_INDEX) + 1;
-    else
-        randCQI = intuniform(CQI_UNIFORM_A, CQI_UNIFORM_B, RNG_CQI_INDEX);
+
+    if( fixedCQI )
+        randCQI = par("fixedCQI");
+    else {
+        if( isBinomial )
+            // we add 1 because binomial is non null between 0 and cqi_binomial_n.
+            // we must take into account this variation when choosing cqi_binomial_n
+            randCQI = binomial(cqi_binomial_n, cqi_binomial_p, RNG_CQI_INDEX) + 1;
+        else
+            randCQI = intuniform(CQI_UNIFORM_A, CQI_UNIFORM_B, RNG_CQI_INDEX);
+    }
     cqiPar->setLongValue(randCQI);
 
     cqiMSG->addPar(idUserPar);

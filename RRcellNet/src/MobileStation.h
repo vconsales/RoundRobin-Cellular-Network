@@ -31,6 +31,8 @@ private:
 
     // CQI random distribution type
     bool isBinomial;
+    bool validationCQI;
+    int fixedCQI;
 
     // uniform distribution of CQI value
     const short CQI_UNIFORM_A = 1;

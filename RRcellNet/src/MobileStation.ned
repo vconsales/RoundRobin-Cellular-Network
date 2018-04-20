@@ -24,6 +24,9 @@ simple MobileStation
         int nFrameSlots;
         double timeFramePeriod @unit(ms);
 
+		// used for validation tests
+		bool validationCQI;
+		int fixedCQI;
         // choice between binomial and uniform
         bool isBinomial;
 
