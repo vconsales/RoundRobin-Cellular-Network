@@ -24,7 +24,7 @@ void WebServer::initialize()
     lambda = par("lambda");
     size_uniform_a = par("size_uniform_a");
     size_uniform_b = par("size_uniform_b");
-    constantRate = par("constantRate");
+    fixedRate = par("fixedRate");
 
     beep = new cMessage("beep");
 
@@ -51,7 +51,7 @@ void WebServer::handleMessage(cMessage *msg)
 void WebServer::nextPacketSchedule() {
     simtime_t interarrival_time;
 
-    if( constantRate )
+    if( fixedRate )
         interarrival_time =1/(lambda*1000);
     else
         interarrival_time = exponential((1/lambda), RNG_EXP_INTERARRIVAL_INDEX)/1000;

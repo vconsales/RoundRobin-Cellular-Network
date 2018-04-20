@@ -40,7 +40,7 @@ private:
     unsigned int size_uniform_b;
 
     // used to validate the model
-    bool constantRate;
+    bool fixedRate;
 protected:
     virtual void initialize();
     virtual void handleMessage(cMessage *msg);

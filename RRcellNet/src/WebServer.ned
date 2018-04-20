@@ -27,7 +27,7 @@ simple WebServer
 		int size_uniform_a;
 		int size_uniform_b;
 		// used just during validation phase
-		bool constantRate;
+		bool fixedRate;
     gates:
         output outData_p;
 }
