@@ -50,7 +50,7 @@ confidence <- function(mean, stdev, n) {
 	return(c("confmin"=down, "confmax"=up))
 }
 
-aggregateMeasures <- function(csvfile) {
+prepareMeasures <- function(csvfile) {
 	csvData <- read.csv(file=csvfile, header=TRUE, sep=",")
 
 	AllThroughputBits <- csvData[csvData$type=="scalar" & csvData$name=="throughputBits:last", c("run", "module", "value")]
@@ -74,13 +74,18 @@ aggregateMeasures <- function(csvfile) {
 
 	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
 	temp_merge2 <- merge(temp_merge1, AllConfigNames)
+	temp_merge3 <- merge(temp_merge2, AllThroughputBits)
+	merged_result <- merge(temp_merge3, AllResponseTimes)
 
+	return(merged_result)
+}
+
+aggregateClientMeasures <- function(measures) {
 	## Throughput (on usertraffic variation)
-	throughput_mergedScalars <- merge(temp_merge2, AllThroughputBits)
 
 	# group by lambda and client. Compute mean and stdev for throughput values
-	throughput_agg_clients <- aggregate(list(values=throughput_mergedScalars$throughput),
-		by = list(module=throughput_mergedScalars$module, scenario=throughput_mergedScalars$scenario, usertraffic=throughput_mergedScalars$usertraffic),
+	throughput_agg_clients <- aggregate(list(values=measures$throughput),
+		by = list(module=measures$module, scenario=measures$scenario, usertraffic=measures$usertraffic),
 		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
 	colnames(throughput_agg_clients)[4] <- "throughput"
 
@@ -88,11 +93,10 @@ aggregateMeasures <- function(csvfile) {
 	throughput_agg_clients <- do.call(data.frame, throughput_agg_clients)
 
 	## Response time (on usertraffic variation)
-	responsetime_mergedScalars <- merge(temp_merge2, AllResponseTimes)
 
 	# group by lambda and client. Compute mean and stdev for responsetime values
-	responsetime_agg_clients <- aggregate(list(values=responsetime_mergedScalars$responsetime),
-		by = list(module=responsetime_mergedScalars$module, scenario=throughput_mergedScalars$scenario, usertraffic=responsetime_mergedScalars$usertraffic),
+	responsetime_agg_clients <- aggregate(list(values=measures$responsetime),
+		by = list(module=measures$module, scenario=measures$scenario, usertraffic=measures$usertraffic),
 		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
 	colnames(responsetime_agg_clients)[4] <- "responsetime"
 
@@ -106,32 +110,9 @@ aggregateMeasures <- function(csvfile) {
 	return(allStats)
 }
 
-aggregateAntennaMeasures <- function(csvfile) {
-	csvData <- read.csv(file=csvfile, header=TRUE, sep=",")
-
-	AllThroughputBits <- csvData[csvData$type=="scalar" & csvData$name=="throughputBits:last", c("run", "module", "value")]
-	colnames(AllThroughputBits)[3] <- "throughput"
-	AllThroughputBits$throughput <- as.numeric(as.character(AllThroughputBits$throughput))
-
-	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
-	colnames(AllRepetitions)[2] <- "repetition"
-	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
-
-	AllUserLambdas <- csvData[csvData$type=="itervar" & csvData$attrname=="usertraffic", c("run", "attrvalue")]
-	colnames(AllUserLambdas)[2] <- "usertraffic"
-	AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
-
-	AllConfigNames <- csvData[csvData$type=="runattr" & csvData$attrname=="configname", c("run", "attrvalue")]
-	colnames(AllConfigNames)[2] <- "scenario"
-
-	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
-	temp_merge2 <- merge(temp_merge1, AllConfigNames)
-
-	## Throughput (on usertraffic variation)
-	throughput_mergedScalars <- merge(temp_merge2, AllThroughputBits)
-
-	throughput_agg_antenna <- aggregate(list(values=throughput_mergedScalars$throughput),
-		by = list(scenario=throughput_mergedScalars$scenario, usertraffic=throughput_mergedScalars$usertraffic, repetition=throughput_mergedScalars$repetition),
+aggregateAntennaMeasures <- function(measures) {
+	throughput_agg_antenna <- aggregate(list(values=measures$throughput),
+		by = list(scenario=measures$scenario, usertraffic=measures$usertraffic, repetition=measures$repetition),
 		sum)
 	colnames(throughput_agg_antenna)[4] <- "antennathroughput"
 
@@ -278,7 +259,7 @@ X11(width=14, height=7)
 
 ## REGRESSION TEST
 
-regressionTestData <- aggregateMeasures("data_regr.csv")
+regressionTestData <- aggregateClientMeasures(prepareMeasures("data_regr.csv"))
 
 ## Throughput (on usertraffic variation)
 plotAllModulesStatistics(regressionTestData)
@@ -287,10 +268,16 @@ waitForClick()
 ## USERS STATISTICS
 
 # load all experiments data from CSVs
-uniformData <- aggregateMeasures("data_uni.csv")
-uniformBestCQIData <- aggregateMeasures("data_uni_bestcqi.csv")
-binomialData <- aggregateMeasures("data_binom.csv")
-binomialBestCQIData <- aggregateMeasures("data_binom_bestcqi.csv")
+preparedUniformData <- prepareMeasures("data_uni.csv")
+preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
+preparedBinomialData <- prepareMeasures("data_binom.csv")
+preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
+
+# compute confidence intervals and means for each user (and for each scenario)
+uniformData <- aggregateClientMeasures(preparedUniformData)
+uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
+binomialData <- aggregateClientMeasures(preparedBinomialData)
+binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
 
 # open a new window with 1 row x 2 column graphs
 
@@ -348,14 +335,15 @@ for(clientindex in 0:9)
 {
 	plotModuleComparision(binomialData, clientindex, binomialBestCQIData, clientindex)
 	waitForClick()
-}
+	}
+
 
 # ANTENNA STATISTICS
 
-antennaUniform <- aggregateAntennaMeasures("data_uni.csv")
-antennaUniformBestCQI <- aggregateAntennaMeasures("data_uni_bestcqi.csv")
-antennaBinomial <- aggregateAntennaMeasures("data_binom.csv")
-antennaBinomialBestCQI <- aggregateAntennaMeasures("data_binom_bestcqi.csv")
+antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
+antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
+antennaBinomial <- aggregateAntennaMeasures(preparedBinomialData)
+antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
 
 antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
