@@ -275,17 +275,9 @@ plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, m
 # disable scientific notation
 options(scipen = 999)
 
-# open a new window with 1 row x 2 column graphs
-X11(width=14, height=7)
-
-
 ## REGRESSION TEST
-
-regressionTestData <- aggregateClientMeasures(prepareMeasures("data_regr.csv"))
-
-## Throughput (on usertraffic variation)
-plotAllModulesStatistics(regressionTestData)
-waitForClick()
+preparedRegressionData <- prepareMeasures("data_regr.csv")
+regressionTestData <- aggregateClientMeasures(preparedRegressionData)
 
 ## USERS STATISTICS
 
@@ -301,66 +293,7 @@ uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
 
-# open a new window with 1 row x 2 column graphs
-
-## Throughput (on usertraffic variation)
-plotAllModulesStatistics(uniformData)
-waitForClick()
-plotAllModulesStatistics(uniformBestCQIData)
-waitForClick()
-plotAllModulesStatistics(binomialData)
-waitForClick()
-plotAllModulesStatistics(binomialBestCQIData)
-waitForClick()
-
-plotLorentzCurvePerRate(uniformData, 0.1, 4.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRate(uniformBestCQIData, 0.1, 4.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRateResponseTimes(uniformData, 0.1, 4.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRateResponseTimes(uniformBestCQIData, 0.1, 4.1, 0.5)
-waitForClick()
-
-plotLorentzCurvePerRate(binomialData, 0.1, 8.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRate(binomialBestCQIData, 0.1, 8.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRateResponseTimes(binomialData, 0.1, 8.1, 0.5)
-waitForClick()
-plotLorentzCurvePerRateResponseTimes(binomialBestCQIData, 0.1, 8.1, 0.5)
-waitForClick()
-
-# Lorentz curve comparision per rate (binomial, binomialbestcqi)
-for(rate in seq(0.6, 4.1, by=0.5))
-{
-	plotLorentzCurveComparision(uniformData, uniformBestCQIData, rate)
-	waitForClick()
-}
-
-# Lorentz curve comparision per rate (uniform, uniformbestcqi)
-for(rate in seq(0.6, 8.1, by=0.5))
-{
-	plotLorentzCurveComparision(binomialData, binomialBestCQIData, rate)
-	waitForClick()
-}
-
-# plot user statistics for uniform and uniform bestcqi scenario
-for(clientindex in 0:9)
-{
-	plotModuleComparision(uniformData, clientindex, uniformBestCQIData, clientindex)
-	waitForClick()
-}
-
-# plot user statistics for binomial and binomial bestcqi scenario
-for(clientindex in 0:9)
-{
-	plotModuleComparision(binomialData, clientindex, binomialBestCQIData, clientindex)
-	waitForClick()
-	}
-
-
-# ANTENNA STATISTICS
+## ANTENNA STATISTICS
 
 antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
 antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
@@ -369,19 +302,165 @@ antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
 
 antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
-antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
-	geom_line() +
-	geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
-	geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
-		floor(max(antennaUniform$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
-		floor(max(antennaUniformBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
-		floor(max(antennaBinomial$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
-	geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
-		floor(max(antennaBinomialBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5)
 
-multiplot(antenna_graph)
-waitForClick()
+# scenario string parsing
+parsescenario_prep <- list("regr" = preparedRegressionData,
+							"unif" = preparedUniformData,
+							"unifbest" = preparedUniformBestCQIData,
+							"binom" = preparedBinomialData,
+							"binombest" = preparedBinomialBestCQIData)
+parsescenario_data <- list("regr" = regressionTestData,
+							"unif" = uniformData,
+							"unifbest" = uniformBestCQIData,
+							"binom" = binomialData,
+							"binombest" = binomialBestCQIData)
 
-invisible(dev.off())
+
+cat("Plot commands:\n");
+cat("\tall, lorallth, lorallrt,\n");
+cat("\tth, lorth, ecdf, boxplot,\n");
+cat("\tthantenna,\n");
+cat("\tclose, exit\n");
+cat("Valid scenarios:\n\t");
+cat(paste(names(parsescenario_data), collapse = ' '));
+cat("\n");
+
+while(1) {
+	cat("$ ");
+	cmdstr <- readLines("stdin",n=1);
+	params <- unlist(strsplit(cmdstr, " "));
+
+	switch(params[1],
+		exit={
+			quit();
+		},
+		close={
+			dev.off();
+		},
+		all={
+			if(length(params) != 2)
+				cat("all usage: all <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotAllModulesStatistics(data1)
+				}
+			}
+		},
+		th={
+			if(length(params) != 5)
+				cat("th usage: th <scenario1> <scenario2> <clientindex1> <clientindex2>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				data2=parsescenario_data[[ params[3] ]]
+
+				if(is.null(data1) || is.null(data2))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotModuleComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
+				}
+			}
+		},
+		lorallth={
+			if(length(params) != 2)
+				cat("lorallth usage: lorallth <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotLorentzCurvePerRate(data1, 0.1, 8.1, 0.5)
+				}
+			}
+		},
+		lorallrt={
+			if(length(params) != 2)
+				cat("lorallrt usage: lorallrt <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotLorentzCurvePerRateResponseTimes(data1, 0.1, 8.1, 0.5)
+				}
+			}
+		},
+		lorth={
+			if(length(params) != 4)
+				cat("lorth usage: lorth <scenario1> <scenario2> <clientrate>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				data2=parsescenario_data[[ params[3] ]]
+
+				if(is.null(data1) || is.null(data2))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotLorentzCurveComparision(data1, data2, as.numeric(params[4]))
+				}
+			}
+		},
+		ecdf={
+			if(length(params) != 5)
+				cat("ecdf usage: ecdf <scenario1> <scenario2> <clientrate> <clientindex>\n")
+			else {
+				prepdata1=parsescenario_prep[[ params[2] ]]
+				prepdata2=parsescenario_prep[[ params[3] ]]
+
+				if(is.null(prepdata1) || is.null(prepdata2))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotThroughputEcdfComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]));
+				}
+			}
+		},
+		boxplot={
+			if(length(params) != 5)
+				cat("boxplot usage: boxplot <scenario1> <scenario2> <clientrate> <clientindex>\n")
+			else {
+				prepdata1=parsescenario_prep[[ params[2] ]]
+				prepdata2=parsescenario_prep[[ params[3] ]]
+
+				if(is.null(prepdata1) || is.null(prepdata2))
+					cat("invalid scenario\n")
+				else {
+					X11(width=14, height=7)
+					plotBoxplotThroughputComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]))
+				}
+			}
+		},
+		thantenna={
+			if(length(params) != 1)
+				cat("thantenna usage: thantenna (no parameters)\n")
+			else {
+				antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
+					geom_line() +
+					geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
+					geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
+						floor(max(antennaUniform$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+					geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
+						floor(max(antennaUniformBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+					geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
+						floor(max(antennaBinomial$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5) +
+					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
+						floor(max(antennaBinomialBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5)
+
+				X11(width=14, height=7)
+				multiplot(antenna_graph)
+			}
+		},
+		{
+			cat("Not recognized command\n")
+		}
+	)
+}
