@@ -272,6 +272,13 @@ plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, m
 	multiplot(resplot)
 }
 
+printRates <- function(plotdata)
+{
+	rates = sort(unique(plotdata$usertraffic));
+	cat(paste(rates));
+	cat("\n");
+}
+
 # disable scientific notation
 options(scipen = 999)
 
@@ -317,6 +324,7 @@ parsescenario_data <- list("regr" = regressionTestData,
 
 
 cat("Plot commands:\n");
+cat("\trates,");
 cat("\tall, lorallth, lorallrt,\n");
 cat("\tth, lorth, ecdf, boxplot,\n");
 cat("\tthantenna,\n");
@@ -349,6 +357,17 @@ while(1) {
 					X11(width=14, height=7)
 					plotAllModulesStatistics(data1)
 				}
+			}
+		},
+		rates={
+			if(length(params) != 2)
+				cat("rates usage: rates <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else
+					printRates(data1)
 			}
 		},
 		th={
