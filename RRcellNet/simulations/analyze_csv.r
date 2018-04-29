@@ -279,6 +279,35 @@ printRates <- function(plotdata)
 	cat("\n");
 }
 
+outputmode <- "window";
+switchOutput <- function(mode)
+{
+	if(mode == "window")
+		library(ggplot2)
+	else if(mode == "tikz")
+	{
+		library(tikzDevice)
+		#options(tikzMetricPackages = c("\\usepackage[utf8]{inputenc}","\\usepackage[T1]{fontenc}", "\\usetikzlibrary{calc}", "\\usepackage{amssymb}"))
+	}
+	else if(mode == "plotly")
+		library(plotly)
+	else {
+		cat("Invalid output mode!\n");
+		return()
+	}
+	outputmode <<- mode;
+}
+
+startDevice <- function()
+{
+	if(outputmode == "window")
+		X11(width=14, height=7)
+	else if(outputmode == "tikz")
+		tikz(file = "plot_test.tex", sanitize=TRUE, width = 5, height = 5)
+	else if(outputmode == "plotly")
+		cat("plotly is not yet supported.\n")
+}
+
 # disable scientific notation
 options(scipen = 999)
 
@@ -345,6 +374,13 @@ while(1) {
 		close={
 			dev.off();
 		},
+		mode={
+			if(length(params) != 2)
+				cat("mode usage: mode <modename>\n")
+			else {
+				switchOutput(params[2])
+			}
+		},
 		all={
 			if(length(params) != 2)
 				cat("all usage: all <scenario>\n")
@@ -354,7 +390,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotAllModulesStatistics(data1)
 				}
 			}
@@ -380,7 +416,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotModuleComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
@@ -394,7 +430,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotLorentzCurvePerRate(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -408,7 +444,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotLorentzCurvePerRateResponseTimes(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -423,7 +459,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotLorentzCurveComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -438,7 +474,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotThroughputEcdfComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]));
 				}
 			}
@@ -453,7 +489,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					X11(width=14, height=7)
+					startDevice()
 					plotBoxplotThroughputComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]))
 				}
 			}
@@ -474,7 +510,7 @@ while(1) {
 					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
 						floor(max(antennaBinomialBestCQI$antennathroughput.mean)), '')), hjust=0.5, vjust=-0.5)
 
-				X11(width=14, height=7)
+				startDevice()
 				multiplot(antenna_graph)
 			}
 		},
