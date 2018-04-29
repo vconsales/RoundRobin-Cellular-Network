@@ -92,7 +92,7 @@ void Scheduler::updateCQIs(cMessage *msg)
 }
 
 void Scheduler::scheduleUsers() {
-    std::function<bool(rrUserStruct,rrUserStruct)> fairScheduler =
+    std::function<bool(rrUserStruct,rrUserStruct)> lambda_fairScheduler =
             [this] (rrUserStruct first, rrUserStruct second) {
                 // currentUser must be always on top
                 if(first.userId == this->currentUser)
@@ -111,8 +111,8 @@ void Scheduler::scheduleUsers() {
                 return first.userId < second.userId;
             };
 
-    std::function<bool(rrUserStruct,rrUserStruct)> bestCQIScheduler =
-            [this,fairScheduler] (rrUserStruct first, rrUserStruct second) {
+    std::function<bool(rrUserStruct,rrUserStruct)> lambda_bestCQIScheduler =
+            [this,lambda_fairScheduler] (rrUserStruct first, rrUserStruct second) {
                 // currentUser must be always on top
                 if(first.userId == this->currentUser)
                     return true;
@@ -127,15 +127,21 @@ void Scheduler::scheduleUsers() {
 
                 // what if CQIs are equal?
                 // just use the fair scheduling (:
-                return fairScheduler(first, second);
+                return lambda_fairScheduler(first, second);
             };
 
 
     // if chosen, sort users using the best-CQI policy
     if(bestCQIScheduler)
-        std::sort(usersVector.begin(), usersVector.end(), bestCQIScheduler);
+    {
+        std::sort(usersVector.begin(), usersVector.end(), lambda_bestCQIScheduler);
+        EV << "ORDERING BY BEST CQI" << endl;
+    }
     else    // otherwise we will user a fair scheduling
-        std::sort(usersVector.begin(), usersVector.end(), fairScheduler);
+    {
+        std::sort(usersVector.begin(), usersVector.end(), lambda_fairScheduler);
+        EV << "ORDERING BY FAIR CQI" << endl;
+    }
 }
 
 void Scheduler::sendRBs()
