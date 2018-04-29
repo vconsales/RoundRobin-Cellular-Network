@@ -250,6 +250,28 @@ plotLorentzCurveComparision <- function(plotdata1, plotdata2, clientrate) {
 	multiplot(resplot)
 }
 
+plotThroughputEcdfComparision <- function(prepdata1, prepdata2, clientrate, moduleindex) {
+	targetdata1 <- prepdata1[prepdata1$usertraffic==clientrate & prepdata1$module==sprintf("CellularNetwork.users[%d]",moduleindex),]
+	targetdata2 <- prepdata2[prepdata2$usertraffic==clientrate & prepdata2$module==sprintf("CellularNetwork.users[%d]",moduleindex),]
+	targetdata <- rbind(targetdata1, targetdata2)
+
+	resplot <- ggplot(targetdata, aes(x=throughput)) +
+				stat_ecdf(aes(group=scenario, color=scenario))
+
+	multiplot(resplot)
+}
+
+plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, moduleindex) {
+	targetdata1 <- prepdata1[prepdata1$usertraffic==clientrate & prepdata1$module==sprintf("CellularNetwork.users[%d]",moduleindex),]
+	targetdata2 <- prepdata2[prepdata2$usertraffic==clientrate & prepdata2$module==sprintf("CellularNetwork.users[%d]",moduleindex),]
+	targetdata <- rbind(targetdata1, targetdata2)
+
+	resplot <- ggplot(targetdata, aes(x=usertraffic, y=throughput)) +
+				geom_boxplot(aes(group=interaction(usertraffic,scenario), fill=scenario))
+
+	multiplot(resplot)
+}
+
 # disable scientific notation
 options(scipen = 999)
 
