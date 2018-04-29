@@ -19,6 +19,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 Define_Module(Scheduler);
 
@@ -91,45 +92,50 @@ void Scheduler::updateCQIs(cMessage *msg)
 }
 
 void Scheduler::scheduleUsers() {
+    std::function<bool(rrUserStruct,rrUserStruct)> fairScheduler =
+            [this] (rrUserStruct first, rrUserStruct second) {
+                // currentUser must be always on top
+                if(first.userId == this->currentUser)
+                    return true;
+                else if(second.userId == this->currentUser)
+                    return false;
+
+                // we want to order users from currentUser to the end and then WRAP
+                // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
+                if(first.userId > this->currentUser && second.userId < this->currentUser)
+                    return true;
+                else if(first.userId < this->currentUser && second.userId > this->currentUser)
+                    return false;
+
+                // else compare IDs
+                return first.userId < second.userId;
+            };
+
+    std::function<bool(rrUserStruct,rrUserStruct)> bestCQIScheduler =
+            [this,fairScheduler] (rrUserStruct first, rrUserStruct second) {
+                // currentUser must be always on top
+                if(first.userId == this->currentUser)
+                    return true;
+                else if(second.userId == this->currentUser)
+                    return false;
+
+                // else compare CQIs
+                if(first.receivedCQI > second.receivedCQI)
+                    return true;
+                else if( first.receivedCQI < second.receivedCQI)
+                    return false;
+
+                // what if CQIs are equal?
+                // just use the fair scheduling (:
+                return fairScheduler(first, second);
+            };
+
+
     // if chosen, sort users using the best-CQI policy
     if(bestCQIScheduler)
-        std::sort(usersVector.begin(), usersVector.end(),
-                [this](rrUserStruct first, rrUserStruct second) {
-                    // currentUser must be always on top
-                    if(first.userId == this->currentUser)
-                        return true;
-                    else if(second.userId == this->currentUser)
-                        return false;
-
-                    // else compare CQIs
-                    if(first.receivedCQI > second.receivedCQI)
-                        return true;
-                    else if( first.receivedCQI < second.receivedCQI)
-                        return false;
-                    else if(first.userId < second.userId)
-                        return true;
-
-                    return false;} );
-    else
-    // otherwise we will user a fair scheduling
-        std::sort(usersVector.begin(), usersVector.end(),
-                [this](rrUserStruct first, rrUserStruct second) {
-                    // currentUser must be always on top
-                    if(first.userId == this->currentUser)
-                        return true;
-                    else if(second.userId == this->currentUser)
-                        return false;
-
-                    // we want to order users from currentUser to the end and then WRAP
-                    // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
-                    if(first.userId > this->currentUser && second.userId < this->currentUser)
-                        return true;
-                    else if(first.userId < this->currentUser && second.userId > this->currentUser)
-                        return false;
-
-                    // else compare IDs
-                    return first.userId < second.userId;
-                } );
+        std::sort(usersVector.begin(), usersVector.end(), bestCQIScheduler);
+    else    // otherwise we will user a fair scheduling
+        std::sort(usersVector.begin(), usersVector.end(), fairScheduler);
 }
 
 void Scheduler::sendRBs()
