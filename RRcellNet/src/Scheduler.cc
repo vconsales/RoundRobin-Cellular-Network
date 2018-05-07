@@ -205,6 +205,7 @@ void Scheduler::sendRBs()
         // as allocated and must not be used by the next user
         assert(RBbytes!=0);
         int allocatedRbs = integerRoundDivision(allocatedFrameSpace, RBbytes);
+        fchunk->setRBCount(allocatedRbs);
         EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
 
         freeRBs -= allocatedRbs;

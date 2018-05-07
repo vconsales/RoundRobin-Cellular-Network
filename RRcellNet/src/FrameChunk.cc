@@ -16,8 +16,16 @@
 #include "FrameChunk.h"
 
 FrameChunk::FrameChunk(unsigned short frame_offset, unsigned short RB_size)
-: cMessage("FrameChunk"), frame_offset(frame_offset), RB_size(RB_size), packet_list() {
+: cMessage("FrameChunk"), frame_offset(frame_offset), RB_size(RB_size), RB_count(0), packet_list() {
 
+}
+
+void FrameChunk::setRBCount(unsigned short RB_count) {
+    this->RB_count=RB_count;
+}
+
+unsigned short FrameChunk::getRBCount() {
+    return this->RB_count;
 }
 
 void FrameChunk::insertPacket(cPacket *pkt) {

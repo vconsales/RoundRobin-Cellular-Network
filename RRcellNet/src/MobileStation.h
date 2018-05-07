@@ -56,6 +56,7 @@ private:
 
     simsignal_t throughputBits_s;
     simsignal_t slottedThroughputBits_s;
+    simsignal_t rbCount_s;
     simsignal_t responseTime_s;
   protected:
     virtual void initialize();

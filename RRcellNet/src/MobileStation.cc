@@ -48,6 +48,7 @@ void MobileStation::initialize()
 
     // vector statistics
     slottedThroughputBits_s = registerSignal("slottedThroughputBits");
+    rbCount_s = registerSignal("rbCount");
     responseTime_s = registerSignal("responseTime");
 
     scheduleAt(simTime(), beepMS);
@@ -114,7 +115,11 @@ void MobileStation::handleFrameChunk(cMessage *msg) {
     {
         UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
         emit(responseTime_s, end_time - user_pkt->getStart_time());
-        EV << "packet received bytes=" << pkt->getByteLength() << " bits=" << pkt->getBitLength() << endl;
+        emit(rbCount_s, fchunk->getRBCount());
+
+        EV << "packet received bytes=" << pkt->getByteLength()
+            << " bits=" << pkt->getBitLength()
+            << " rbcount=" << fchunk->getRBCount() << endl;
 
         delete user_pkt;
     }
