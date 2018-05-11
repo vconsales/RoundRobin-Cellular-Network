@@ -25,10 +25,14 @@ class FrameChunk: public omnetpp::cMessage {
 private:
     unsigned short frame_offset;
     unsigned short RB_size;
+    unsigned short RB_count;
     cPacketQueue packet_list;
 
 public:
     FrameChunk(unsigned short frame_offset, unsigned short RB_size);
+    void setRBCount(unsigned short RB_count);
+    unsigned short getRBCount();
+
     void insertPacket(cPacket *pkt);
     cPacket *extractPacket();
     unsigned int packetCount();

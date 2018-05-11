@@ -43,6 +43,10 @@ simple MobileStation
         @signal[slottedThroughputBits](type=double);
         @statistic[slottedThroughputBits](source "slottedThroughputBits";record=vector;);
 
+        // mean resource block count
+        @signal[rbCount](type=int);
+        @statistic[rbCount](source "rbCount";record=vector,mean;);
+
         // mean response time (vector type, x=time, y=time + mean)
         @signal[responseTime](type=simtime_t);
         @statistic[responseTime](source "responseTime";record=vector,mean;);
