@@ -61,6 +61,10 @@ prepareMeasures <- function(csvfile) {
 	colnames(AllResponseTimes)[3] <- "responsetime"
 	AllResponseTimes$responsetime <- as.numeric(as.character(AllResponseTimes$responsetime))
 
+	AllRbCounts <- csvData[csvData$type=="scalar" & csvData$name=="rbCount:mean", c("run", "module", "value")]
+	colnames(AllRbCounts)[3] <- "rbcount"
+	AllRbCounts$rbcount <- as.numeric(as.character(AllRbCounts$rbcount))
+
 	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
 	colnames(AllRepetitions)[2] <- "repetition"
 	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
@@ -75,7 +79,8 @@ prepareMeasures <- function(csvfile) {
 	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
 	temp_merge2 <- merge(temp_merge1, AllConfigNames)
 	temp_merge3 <- merge(temp_merge2, AllThroughputBits)
-	merged_result <- merge(temp_merge3, AllResponseTimes)
+	temp_merge4 <- merge(temp_merge3, AllRbCounts)
+	merged_result <- merge(temp_merge4, AllResponseTimes)
 
 	return(merged_result)
 }
@@ -103,8 +108,21 @@ aggregateClientMeasures <- function(measures) {
 	# trasform confidence(...) vectors into columns
 	responsetime_agg_clients <- do.call(data.frame, responsetime_agg_clients)
 
-	# merging throughput and responsetime data frames
-	allStats <- merge(throughput_agg_clients, responsetime_agg_clients)
+	## ResourceBlock count (on usertraffic variation)
+
+	# group by lambda and client. Compute mean and stdev for rbcount values
+	rbcount_agg_clients <- aggregate(list(values=measures$rbcount),
+		by = list(module=measures$module, scenario=measures$scenario, usertraffic=measures$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(rbcount_agg_clients)[4] <- "rbcount"
+
+	# trasform confidence(...) vectors into columns
+	rbcount_agg_clients <- do.call(data.frame, rbcount_agg_clients)
+
+
+	# merging throughput, responsetime and rbcount data frames
+	partial_merge <- merge(throughput_agg_clients, responsetime_agg_clients)
+	allStats <- merge(partial_merge, rbcount_agg_clients)
 
 	# returning the merged dataframe
 	return(allStats)
@@ -166,6 +184,31 @@ plotAllModulesStatistics <- function(plotdata) {
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
 
+plotAllModulesRBcounts <- function(plotdata) {
+	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
+	geom_line() +
+	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	plot_rb <- ggplot(plotdata, aes(x=usertraffic, y=rbcount.mean, colour=module, group=module)) +
+	geom_line() +
+	geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1))
+
+	plotdouble_singlelegend(plot_th, plot_rb);
+}
+
+plotAllModulesRBcountsByTrafficComparision <- function(plotdata1, plotdata2, clientrate) {
+	targetrate1 <- plotdata1[plotdata1$usertraffic==clientrate,]
+	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
+	plotdata <- rbind(targetrate1, targetrate2)
+
+	plot_rb <- ggplot(plotdata, aes(x=module, fill=scenario, y=rbcount.mean)) +
+		geom_bar(stat="identity", position="dodge") +
+		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1), position=position_dodge(.9))
+
+	multiplot(plot_rb);
+}
+
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
 	targetmodule1 = plotdata1[plotdata1$module == sprintf("CellularNetwork.users[%d]",moduleindex1),]
 	targetmodule2 = plotdata2[plotdata2$module == sprintf("CellularNetwork.users[%d]",moduleindex2),]
@@ -182,6 +225,20 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 		geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdouble_singlelegend(plot_th, plot_rt)
+}
+
+plotModuleRBComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
+	targetmodule1 = plotdata1[plotdata1$module == sprintf("CellularNetwork.users[%d]",moduleindex1),]
+	targetmodule2 = plotdata2[plotdata2$module == sprintf("CellularNetwork.users[%d]",moduleindex2),]
+
+	plotdata <- rbind(targetmodule1, targetmodule2)
+	#print(plotdata)
+
+	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=rbcount.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
+		geom_line() +
+		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1))
+
+	multiplot(plot_th)
 }
 
 plotLorentzCurvePerRate <- function(plotdata, clientratemin, clientratemax, clientratestep) {
@@ -231,12 +288,55 @@ plotLorentzCurvePerRateResponseTimes <- function(plotdata, clientratemin, client
 	multiplot(resplot)
 }
 
+plotLorentzCurvePerRateRBcount <- function(plotdata, clientratemin, clientratemax, clientratestep) {
+	cumulativedf <- data.frame();
+	for(rate in seq(clientratemin, clientratemax, by=clientratestep))
+	{
+		targetrate <- plotdata[plotdata$usertraffic==rate,]
+		lcdata <- Lc(targetrate$rbcount.mean)
+		lcdataframe <- data.frame(lcdata[1], lcdata[2], clientrate=rep(rate, length(lcdata$p)))
+		# if first iteration
+		if(rate == clientratemin)
+			cumulativedf <- lcdataframe
+		else
+			cumulativedf <- rbind(cumulativedf, lcdataframe)
+	}
+
+	resplot <- ggplot(cumulativedf, aes(x=p, y=L, color=clientrate, group=clientrate)) +
+		geom_abline() +
+		geom_line() + scale_color_gradient(low="#3fc601", high="#ff0f0f") +
+		ggtitle(sprintf("Lorentz Curve Per Rate Resource Block counts (%s)", deparse(substitute(plotdata)))) +
+		theme(plot.title = element_text(hjust = 0.5))
+
+
+	multiplot(resplot)
+}
+
 plotLorentzCurveComparision <- function(plotdata1, plotdata2, clientrate) {
 	targetrate1 <- plotdata1[plotdata1$usertraffic==clientrate,]
 	lcdata1 <- Lc(targetrate1$throughput.mean)
 
 	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
 	lcdata2 <- Lc(targetrate2$throughput.mean)
+
+	lcplotdata <- rbind(data.frame(lcdata1[1], lcdata1[2], dataset=rep(deparse(substitute(plotdata1)), length(lcdata1$p))),
+						data.frame(lcdata2[1], lcdata2[2], dataset=rep(deparse(substitute(plotdata2)), length(lcdata2$p))))
+
+	resplot <- ggplot(lcplotdata, aes(x=p, y=L, color=dataset, group=dataset)) +
+		geom_abline() +
+		geom_line() +
+		ggtitle(sprintf("Lorentz Curve Throughput Comparision (Rate = %s)", clientrate)) +
+		theme(plot.title = element_text(hjust = 0.5))
+
+	multiplot(resplot)
+}
+
+plotLorentzCurveRBcountComparision <- function(plotdata1, plotdata2, clientrate) {
+	targetrate1 <- plotdata1[plotdata1$usertraffic==clientrate,]
+	lcdata1 <- Lc(targetrate1$rbcount.mean)
+
+	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
+	lcdata2 <- Lc(targetrate2$rbcount.mean)
 
 	lcplotdata <- rbind(data.frame(lcdata1[1], lcdata1[2], dataset=rep(deparse(substitute(plotdata1)), length(lcdata1$p))),
 						data.frame(lcdata2[1], lcdata2[2], dataset=rep(deparse(substitute(plotdata2)), length(lcdata2$p))))
@@ -353,9 +453,9 @@ parsescenario_data <- list("regr" = regressionTestData,
 
 
 cat("Plot commands:\n");
-cat("\trates,");
-cat("\tall, lorallth, lorallrt,\n");
-cat("\tth, lorth, ecdf, boxplot,\n");
+cat("\trates,\n");
+cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
+cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tthantenna,\n");
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
@@ -395,6 +495,35 @@ while(1) {
 				}
 			}
 		},
+		allrb={
+			if(length(params) != 2)
+				cat("allrb usage: allrb <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllModulesRBcounts(data1)
+				}
+			}
+		},
+		allrbbars={
+			if(length(params) != 4)
+				cat("allrbbars usage: allrbbars <scenario1> <scenario2> <clientrate>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				data2=parsescenario_data[[ params[3] ]]
+
+				if(is.null(data1) || is.null(data2))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllModulesRBcountsByTrafficComparision(data1, data2, as.numeric(params[4]))
+				}
+			}
+		},
 		rates={
 			if(length(params) != 2)
 				cat("rates usage: rates <scenario>\n")
@@ -418,6 +547,21 @@ while(1) {
 				else {
 					startDevice()
 					plotModuleComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
+				}
+			}
+		},
+		rb={
+			if(length(params) != 5)
+				cat("rb usage: rb <scenario1> <scenario2> <clientindex1> <clientindex2>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				data2=parsescenario_data[[ params[3] ]]
+
+				if(is.null(data1) || is.null(data2))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotModuleRBComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
 		},
@@ -449,6 +593,20 @@ while(1) {
 				}
 			}
 		},
+		lorallrb={
+			if(length(params) != 2)
+				cat("lorallrb usage: lorallrb <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotLorentzCurvePerRateRBcount(data1, 0.1, 8.1, 0.5)
+				}
+			}
+		},
 		lorth={
 			if(length(params) != 4)
 				cat("lorth usage: lorth <scenario1> <scenario2> <clientrate>\n")
@@ -461,6 +619,21 @@ while(1) {
 				else {
 					startDevice()
 					plotLorentzCurveComparision(data1, data2, as.numeric(params[4]))
+				}
+			}
+		},
+		lorrb={
+			if(length(params) != 4)
+				cat("lorrb usage: lorrb <scenario1> <scenario2> <clientrate>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+				data2=parsescenario_data[[ params[3] ]]
+
+				if(is.null(data1) || is.null(data2))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotLorentzCurveRBcountComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
 		},
