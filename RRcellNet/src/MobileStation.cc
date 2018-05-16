@@ -37,6 +37,7 @@ void MobileStation::initialize()
     // statistic members
     totalReceivedBits = 0;
     lastSlotReceivedBits = 0;
+    lastSlotRBcount = 0;
 
     // CQI RNG parameters fetch
     isBinomial = par("isBinomial");
@@ -88,10 +89,14 @@ void MobileStation::sendCQI() {
 
     // slotted throughput (of the previous slot)
     emit(slottedThroughputBits_s, lastSlotReceivedBits/(timeFramePeriod/1000));
+    // resource block count (of the previous slot)
+    emit(rbCount_s, lastSlotRBcount);
 
     // we expect to receive a FrameChunk in this slot, so if we
     // receive a FrameChunk this value will be updated
     lastSlotReceivedBits = 0;
+    // same for resource block count
+    lastSlotRBcount = 0;
 
     scheduleAt(simTime()+timeFramePeriod/1000, beepMS);
 }
@@ -100,8 +105,9 @@ void MobileStation::handleFrameChunk(cMessage *msg) {
     //  EV << "pkt received " << msg->getName() << endl;
     FrameChunk *fchunk = check_and_cast<FrameChunk *>(msg);
 
-    // we set the received packet size related to the current slot
+    // we set the received packet size and rbcount related to the current slot
     lastSlotReceivedBits = fchunk->totalCarriedBits();
+    lastSlotRBcount = fchunk->getRBCount();
 
     // statistics must respect the warmup time
     if(simTime() > getSimulation()->getWarmupPeriod())
@@ -115,7 +121,6 @@ void MobileStation::handleFrameChunk(cMessage *msg) {
     {
         UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
         emit(responseTime_s, end_time - user_pkt->getStart_time());
-        emit(rbCount_s, fchunk->getRBCount());
 
         EV << "packet received bytes=" << pkt->getByteLength()
             << " bits=" << pkt->getBitLength()

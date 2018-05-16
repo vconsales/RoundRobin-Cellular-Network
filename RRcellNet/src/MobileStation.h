@@ -53,6 +53,7 @@ private:
     // statistics
     unsigned int totalReceivedBits;
     unsigned int lastSlotReceivedBits;
+    unsigned int lastSlotRBcount;
 
     simsignal_t throughputBits_s;
     simsignal_t slottedThroughputBits_s;
