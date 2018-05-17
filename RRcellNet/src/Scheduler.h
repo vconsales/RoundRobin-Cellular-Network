@@ -47,6 +47,9 @@ private:
     std::vector<FIFOQueue*> vec_q;
     std::vector<cGate*> vec_outData;
 
+    //signals
+    simsignal_t framefilledRbCount_s;
+
     int nextUser();
     void updateCQIs(cMessage *msg);
     void scheduleUsers();

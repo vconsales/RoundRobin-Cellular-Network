@@ -47,6 +47,9 @@ void Scheduler::initialize()
         vec_q.push_back(f);
     }
 
+    // signals for statistics
+    framefilledRbCount_s = registerSignal("framefilledRbCount");
+
     //TODO: RISOLVERE PROBLEMA DELLA RICEZIONE DI TUTTI I CQI PRIMA DI COMPORRE IL FRAME
     scheduleAt(simTime()+0.0001f, beepSched);
 }
@@ -157,6 +160,10 @@ void Scheduler::sendRBs()
     // touching currentUser member
     unsigned int nowServingIndex = 0;
 
+    // this is used to emit a statistic about how much RBs are allocated
+    // to users different from current user (with index nowServingIndex)
+    unsigned int frameFilledRBs = 0;
+
     // we need to fill all the RBs
     int freeRBs = nFrameSlots;
     while(freeRBs && nowServingIndex < nUsers)
@@ -208,6 +215,11 @@ void Scheduler::sendRBs()
         fchunk->setRBCount(allocatedRbs);
         EV << "Scheduler: allocatedRB = " << allocatedRbs << endl;
 
+        // frame filling is done by scheduling packets from the users different from
+        // currentUser (which index is nowServingIndex). This is just for statistic purposes
+        if(nowServingIndex != 0)
+            frameFilledRBs += allocatedRbs;
+
         freeRBs -= allocatedRbs;
 
         // now we can send the FrameChunk to the current user if it contains at least
@@ -222,6 +234,9 @@ void Scheduler::sendRBs()
         // we need to fill the frame, so we will fetch the packets from the next scheduled user
         nowServingIndex++;
     }
+
+    // emitting signal
+    emit(framefilledRbCount_s, frameFilledRBs);
 
     // user vector must be cleared before the next sendRBs method call
     usersVector.clear();

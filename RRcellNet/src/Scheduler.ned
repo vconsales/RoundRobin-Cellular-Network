@@ -26,6 +26,10 @@ simple Scheduler
         int nUsers;
 
         bool bestCQIScheduler;
+
+        // mean frame-filled rb count
+        @signal[framefilledRbCount](type=int);
+        @statistic[framefilledRbCount](source "framefilledRbCount";record=vector,mean;);
     gates:
         input  inCQISched_p[nUsers];
         input  inDataSched_p[nUsers]; //la coda invia i pacchetti qui
