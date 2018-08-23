@@ -1,29 +1,30 @@
 \chapter{Modelling}
 \section{Introduction}
-Let's consider a cellular network consisting of the following modules:
+In these paragraph we describe how we modeled the Celluar Network described in the specifications.
 \begin{itemize}
-   \item \textbf{A Web Server}, which generates data in the form of packets, to be more precise, UserPackets, that is a defined type of packet which includes a \texttt{start\_time} field and its interface (named \texttt{UserPacket\_m}) includes a getter/setter method to update this field.
+   \item \textbf{A Web Server}, which generates data in the form of packets to be trasmitted to users. For our pourposes we have defined the class \texttt{UserPackets} which includes a \texttt{start\_time} field and its interface (named \texttt{UserPacket\_m}) includes a getter/setter method to update this field.
    
-   The size of each packet is randomly generated in a uniform way, since the service demand has to be uniform.
+   The size of each packet is a RV with a uniform distribution, since the service demand has to be uniform. Moreover the packet interarrival time to the antenna has to be an exponential RV, so each packet is generated properly to satisfy this requirements.
+
+   \item \textbf{An Antenna}, which has FIFO queue for each user. Packets received form \textbf{Web Servers} are stored inside queues and then are sent in a unicast way according to the Round Robin policy (which is described in the next section). 
    
-   Each packet is scheduled according to an exponential RV, since the packet interarrival time has to be exponential.
-   \item \textbf{An Antenna}, which includes a certain number of FIFO queues, one for each user. It stores the generated packets and send them in a unicast way according to the Round Robin policy (which is described in the next section). 
-   \item \textbf{A Mobile Station}, which personifies a generic user connected to its own queue on the antenna. On each timeslot it sends a channel quality indicator (CQI), which is a number between 1 and 15 that determines the number of bytes that the antenna can pack into a Resource Block (RB).
+   \item \textbf{A Mobile Station}, which personifies a generic user connected to the antenna. On each timeslot it sends a channel quality indicator (CQI), which is a number between 1 and 15 that define the number of bytes the antenna can pack into a Resource Block (RB).
    
    CQIs are integer RVs generated according the following scenarios:
    
    \begin{enumerate} 
-    \item Uniform, the generated number is a uniform RV.
-    \item Binomial, the generated number is a binomial RV
-    \end{enumerate}
-    
-    Each Mobile Station computes some statistics: slotted throughput (related to each time slot) and response time of received packets.
+    \item Uniform, each user generates a RV \(\sim U(1,15)\)
+    \item Binomial, each user generates a RV \(\sim Bin(n,p_i)\), where \(n\) is the number of users, and \( 0<p_i<1\) depends on the user i.
+    \end{enumerate} 
 \end{itemize}
 
-\noindent The \texttt{CellularNetwork.ned} file shows how the previous modules are connected to obtain the network. 
-Since frames are sent in a unicast way, there are multiple instances of the Web Server module, one for each Mobile Station, seeded in a different way.
+To build our model and to run rimulations we used the framework \textbf{OMNeT++ v5}, so each item described before is defined by a \texttt{*.ned} file.
+Each Mobile Station computes some statistics: slotted throughput (related to each time slot) and response time of received packets. The Antenna compute also statistics about the frame filling, which we will describe later.
 
-\noindent The obtained network is the following: 
+The \texttt{CellularNetwork.ned} file shows how the previous modules are connected to obtain the network. 
+Since frames are sent in a unicast way, there are multiple instances of the Web Server module, one for each Mobile Station, seeded in a different way in order to have IID RV.
+
+The obtained network, by setting \(n=10\), is the following: 
 \begin{figure}[H]
   \centering
   \includegraphics{images/network_simulations}
