@@ -17,12 +17,10 @@ In these paragraph we describe how we modeled the Celluar Network described in t
     \item Binomial, each user generates a RV \(\sim Bin(n,p_i)\), where \(n\) is the number of users, and \( 0<p_i<1\) depends on the user i.
     \end{enumerate} 
 \end{itemize}
-
 To build our model and to run rimulations we used the framework \textbf{OMNeT++ v5}, so each item described before is defined by a \texttt{*.ned} file.
-Each Mobile Station computes some statistics: slotted throughput (related to each time slot) and response time of received packets. The Antenna compute also statistics about the frame filling, which we will describe later.
+Each \texttt{Mobile Station} computes some statistics: slotted throughput (related to each time slot) and response time of received packets. The \texttt{Antenna} compute also statistics about the frame filling, which we will describe later.
 
-The \texttt{CellularNetwork.ned} file shows how the previous modules are connected to obtain the network. 
-Since frames are sent in a unicast way, there are multiple instances of the Web Server module, one for each Mobile Station, seeded in a different way in order to have IID RV.
+The \texttt{CellularNetwork.ned} file shows how the previous modules are connected to obtain the network. Since frames are sent in a unicast way, there are multiple instances of the Web Server module, one for each Mobile Station, seeded in a different way in order to have IID RV.
 
 The obtained network, by setting \(n=10\), is the following: 
 \begin{figure}[H]
@@ -32,10 +30,13 @@ The obtained network, by setting \(n=10\), is the following:
   \label{fig:simulated_network}
 \end{figure}
 
-
-
 \section{Frame Chunks}
+  Packets are delivered to users by enveloping that inside RBs. As requested by specifications \(RBsize\textsubscript{i,t\textsubscript{j}}=f(CQI\textsubscript{i,t\textsubscript{j}})\) where \(i\) is index of \textit{user}, and \(t\textsubscript{j}\) is index of \textit{timeslot}.
+  To do that, the scheduler receives CQIs from the \texttt{Mobile Stations} at beginnig of each time slot, then compute every \(RBsize\textsubscript{i,t\textsubscript{j}}\) and fills the frame according to scheduling policy. Note that a frame can carry RBs for different users so, generally speaking, a frame in a specific time slot \(t\textsubscript{j}\) can have RBs of different size. To cope these requirements we defined a new module \texttt{Frame Chunk} wich groups all RBs addressed to a specific \texttt{Mobile Station}. By introducing this module we can consider a frame as a collection of \texttt{Frame Chunks}. To deliver the whole frame we must send each \texttt{Frame Chunk} to its user in a unicast way.
 
 \section{Schedulers}
-	\subsection{Round-Robin Frame Fill}
-	\subsection{Best CQI based Frame Fill}
+  In this section we will analyze the frame filling policy wich are defined in the module \texttt{Scheduler}.
+  Let's consider a user \(0\leq i\leq n\). Starting from user \(i\), the scheduler allocates a new \texttt{Frame Chunk} and fills it with packets taken from the \texttt{FIFOQueue\textsubscript{i}}. A \texttt{Frame Chunk} is considered full if it contains 25 RBs because it corresponds to the whole frame. If the frame is not full the scheduler must allocate others \texttt{Frame Chunks} in order to fill the residual space using one of the two following policies.
+  
+\subsection{Round-Robin Frame Fill}
+\subsection{Best CQI based Frame Fill}
