@@ -85,6 +85,49 @@ prepareMeasures <- function(csvfile) {
 	return(merged_result)
 }
 
+prepareSchedulerMeasures <- function(csvfile)
+{
+	csvData <- read.csv(file=csvfile, header=TRUE, sep=",")
+
+	AllFramefilledbCounts <- csvData[csvData$type=="scalar" & csvData$module == "CellularNetwork.antenna.scheduler"
+		& csvData$name == "framefilledRbCount:mean", c("run", "value")]
+	colnames(AllFramefilledbCounts)[2] <- "framefilledrbcount"
+	AllFramefilledbCounts$framefilledrbcount <- as.numeric(as.character(AllFramefilledbCounts$framefilledrbcount))
+
+	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
+	colnames(AllRepetitions)[2] <- "repetition"
+	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
+
+	AllUserLambdas <- csvData[csvData$type=="itervar" & csvData$attrname=="usertraffic", c("run", "attrvalue")]
+	colnames(AllUserLambdas)[2] <- "usertraffic"
+	AllUserLambdas$usertraffic <- as.numeric(as.character(AllUserLambdas$usertraffic))
+
+	AllConfigNames <- csvData[csvData$type=="runattr" & csvData$attrname=="configname", c("run", "attrvalue")]
+	colnames(AllConfigNames)[2] <- "scenario"
+
+	temp_merge1 <- merge(AllUserLambdas, AllRepetitions)
+	temp_merge2 <- merge(temp_merge1, AllConfigNames)
+	merged_result <- merge(temp_merge2, AllFramefilledbCounts)
+
+	return(merged_result)
+}
+
+aggregateSchedulerMeasures <- function(measures) {
+	## FrameFilledRbCount (on usertraffic variation)
+
+	# group by lambda and client. Compute mean and stdev for throughput values
+	framefilledrbcount_agg_clients <- aggregate(list(values=measures$framefilledrbcount),
+		by = list(scenario=measures$scenario, usertraffic=measures$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(framefilledrbcount_agg_clients)[3] <- "framefilledrbcount"
+
+	# trasform confidence(...) vectors into columns
+	framefilledrbcount_agg_clients <- do.call(data.frame, framefilledrbcount_agg_clients)
+
+	# returning the merged dataframe
+	return(framefilledrbcount_agg_clients)
+}
+
 aggregateClientMeasures <- function(measures) {
 	## Throughput (on usertraffic variation)
 
@@ -372,6 +415,18 @@ plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, m
 	multiplot(resplot)
 }
 
+plotSchedulerFrameFillRBcount <- function(plotdata) {
+	resplot <- ggplot(plotdata, aes(x=usertraffic, y=framefilledrbcount.mean)) +
+		geom_line() +
+		geom_errorbar(aes(ymin=framefilledrbcount.confmin, ymax=framefilledrbcount.confmax, width=.1)) +
+		geom_text(aes(label=ifelse(
+						usertraffic==max(plotdata$usertraffic),
+						plotdata[plotdata$usertraffic == max(plotdata$usertraffic), ]$framefilledrbcount.mean,
+						'')), hjust=0.5, vjust=-0.5)
+
+	multiplot(resplot)
+}
+
 printRates <- function(plotdata)
 {
 	rates = sort(unique(plotdata$usertraffic));
@@ -429,6 +484,17 @@ uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
 
+## SCHEDULER STATISTICS
+schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
+schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
+schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
+schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
+
+schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
+schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
+schedulerBinomialData <- aggregateSchedulerMeasures(preparedBinomialData)
+schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(preparedBinomialBestCQIData)
+
 ## ANTENNA STATISTICS
 
 antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
@@ -450,12 +516,19 @@ parsescenario_data <- list("regr" = regressionTestData,
 							"unifbest" = uniformBestCQIData,
 							"binom" = binomialData,
 							"binombest" = binomialBestCQIData)
+parsescenario_scheddata <- list("regr" = preparedRegressionData,
+							"unif" = schedulerUniformData,
+							"unifbest" = schedulerUniformBestCQIData
+							"binom" = binomialData,
+							"binombest" = binomialBestCQIData
+							)
 
 
 cat("Plot commands:\n");
 cat("\trates,\n");
 cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
+cat("\tfillrb,\n");
 cat("\tthantenna,\n");
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
@@ -664,6 +737,20 @@ while(1) {
 				else {
 					startDevice()
 					plotBoxplotThroughputComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]))
+				}
+			}
+		},
+		fillrb={
+			if(length(params) != 2)
+				cat("fillrb usage: fillrb <scenario>\n")
+			else {
+				data1=parsescenario_scheddata[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotSchedulerFrameFillRBcount(data1)
 				}
 			}
 		},
