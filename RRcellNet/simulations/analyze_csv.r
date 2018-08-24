@@ -2,6 +2,7 @@ library(ineq)
 library(ggplot2)
 library(gridExtra)
 library(grid)
+library(tikzDevice)
 
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -421,7 +422,7 @@ plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, m
 
 plotSchedulerFrameFillRBcount <- function(plotdata) {
 	resplot <- ggplot(plotdata, aes(x=usertraffic, y=framefilledrbcount.mean)) +
-		geom_line() +
+		geom_line() + scale_y_continuous(breaks=seq(0,25,1)) +
 		geom_errorbar(aes(ymin=framefilledrbcount.confmin, ymax=framefilledrbcount.confmax, width=.1)) +
 		geom_text(aes(label=ifelse(
 						usertraffic==max(plotdata$usertraffic),
@@ -769,8 +770,11 @@ while(1) {
 			if(length(params) != 1)
 				cat("thantenna usage: thantenna (no parameters)\n")
 			else {
+				x_max <- max(antennaAll$usertraffic)
+				y_max <- round(max(antennaAll$antennathroughput.mean)/(1), digits=0)
+
 				antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
-					geom_line() +
+					geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
 					geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
 					geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
 						paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
