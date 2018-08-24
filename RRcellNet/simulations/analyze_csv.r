@@ -519,9 +519,8 @@ parsescenario_data <- list("regr" = regressionTestData,
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
 							"unif" = schedulerUniformData,
 							"unifbest" = schedulerUniformBestCQIData,
-							"binom" = binomialData,
-							"binombest" = binomialBestCQIData
-							)
+							"binom" = schedulerBinomialData,
+							"binombest" = schedulerBinomialBestCQIData)
 
 
 cat("Plot commands:\n");
