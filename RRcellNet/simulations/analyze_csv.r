@@ -492,8 +492,8 @@ schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bes
 
 schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
 schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
-schedulerBinomialData <- aggregateSchedulerMeasures(preparedBinomialData)
-schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(preparedBinomialBestCQIData)
+schedulerBinomialData <- aggregateSchedulerMeasures(schedulerPreparedBinomialData)
+schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedBinomialBestCQIData)
 
 ## ANTENNA STATISTICS
 
@@ -518,7 +518,7 @@ parsescenario_data <- list("regr" = regressionTestData,
 							"binombest" = binomialBestCQIData)
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
 							"unif" = schedulerUniformData,
-							"unifbest" = schedulerUniformBestCQIData
+							"unifbest" = schedulerUniformBestCQIData,
 							"binom" = binomialData,
 							"binombest" = binomialBestCQIData
 							)
