@@ -477,23 +477,27 @@ preparedUniformData <- prepareMeasures("data_uni.csv")
 preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
 preparedBinomialData <- prepareMeasures("data_binom.csv")
 preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
+preparedValidationData <- prepareMeasures("data_validation.csv")
 
 # compute confidence intervals and means for each user (and for each scenario)
 uniformData <- aggregateClientMeasures(preparedUniformData)
 uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
+validationData <- aggregateClientMeasures(preparedValidationData)
 
 ## SCHEDULER STATISTICS
 schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
 schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
 schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
 schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
+schedulerPreparedValidationData <- prepareSchedulerMeasures("data_validation.csv")
 
 schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
 schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
 schedulerBinomialData <- aggregateSchedulerMeasures(schedulerPreparedBinomialData)
 schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedBinomialBestCQIData)
+schedulerValidationData <- aggregateSchedulerMeasures(schedulerPreparedValidationData)
 
 ## ANTENNA STATISTICS
 
@@ -501,8 +505,9 @@ antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
 antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
 antennaBinomial <- aggregateAntennaMeasures(preparedBinomialData)
 antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
+antennaValidation <- aggregateAntennaMeasures(preparedValidationData)
 
-antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
+antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI, antennaValidation)
 
 
 # scenario string parsing
@@ -510,17 +515,20 @@ parsescenario_prep <- list("regr" = preparedRegressionData,
 							"unif" = preparedUniformData,
 							"unifbest" = preparedUniformBestCQIData,
 							"binom" = preparedBinomialData,
-							"binombest" = preparedBinomialBestCQIData)
+							"binombest" = preparedBinomialBestCQIData,
+							"validation" = preparedValidationData)
 parsescenario_data <- list("regr" = regressionTestData,
 							"unif" = uniformData,
 							"unifbest" = uniformBestCQIData,
 							"binom" = binomialData,
-							"binombest" = binomialBestCQIData)
+							"binombest" = binomialBestCQIData,
+							"validation" = validationData)
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
 							"unif" = schedulerUniformData,
 							"unifbest" = schedulerUniformBestCQIData,
 							"binom" = schedulerBinomialData,
-							"binombest" = schedulerBinomialBestCQIData)
+							"binombest" = schedulerBinomialBestCQIData,
+						 	"validation" = schedulerValidationData)
 
 
 cat("Plot commands:\n");
