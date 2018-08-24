@@ -1,7 +1,7 @@
 \chapter{Validation}
 
 \section{Introduction}
-After building our model inside the \textbf{OMNeT++} we can proceed with the simulation in order to analyze the quantities wich we are interested. First of all we will simulate the model in very simple cases in order to be sure it reproduces the system's behavior correctly. We decided to validate our model by \textit{removing randomness}. This choice allow us to do some easy computation by hand and to verify if the result of simulation is consistent with them. Our model will be considered a good replica of the system if it will pass all the \textit{validation tests}.
+After building our model inside the \textbf{OMNeT++} we can proceed with the simulation in order to analyze the quantities wich we are interested. First of all we will simulate the model in very simple cases in order to be sure it reproduces the system's behavior correctly. We decided to validate our model by \textit{removing randomness}. This choice allows us to do some easy computation by hand and to verify if the result of simulation is consistent with them. Our model will be considered a good replica of the system if it will pass all the \textit{validation tests}.
 
 \section{1\textsuperscript{st} test: fixed CQI, fixed \(\lambda\) rate, fixed packet size, 1 user}
 In this test we just one \texttt{Mobile Station} connected to the antenna wich always generates the same CQI for each timeslot. Inside the \texttt{Web Server} the \(\lambda\) rate is fixed and also the packet size. This is a very simple system with deterministic arrivals and deterministic service demand. We can compute the traffic that \texttt{Web Server} sends to the antenna as \[ th\textsubscript{in} = \frac{packetsize \times 8}{1/(1000\lambda)} \lbrack bps \rbrack \] 
