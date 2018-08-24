@@ -4,7 +4,7 @@ In these paragraph we describe how we modeled the Celluar Network described in t
 \begin{itemize}
    \item \textbf{A Web Server}, which generates data in the form of packets to be trasmitted to users. For our pourposes we have defined the class \texttt{UserPackets} which includes a \texttt{start\_time} field and its interface (named \texttt{UserPacket\_m}) includes a getter/setter method to update this field.
    
-   The size of each packet is a RV with a uniform distribution, since the service demand has to be uniform. Moreover the packet interarrival time to the antenna has to be an exponential RV, so each packet is generated properly to satisfy this requirements.
+   The size of each packet is an integer RV \(\sim U(3,75)\), since the service demand has to be uniform and consistent with the frame size. Moreover the packet interarrival time to the antenna has to be an exponential RV, so each packet is generated properly to satisfy this requirements.
 
    \item \textbf{An Antenna}, which has FIFO queue for each user. Packets received form \textbf{Web Servers} are stored inside queues and then are sent in a unicast way according to the Round Robin policy (which is described in the next section). 
    
@@ -46,4 +46,14 @@ The obtained network, by setting \(n=10\), is the following:
   \item \textbf{Best CQI based Frame Fill}
    The residual space in the frame is filled by considering the users with the best(highest) CQI in a decreasing order. In the case of \(CQI\textsubscript{i}=CQI\textsubscript{j} \mid i < j\) is selected the user \(i\).
 \end{itemize}
-We will analyze the effect of both policy to performace regarding the throughput and the response time for each user.
+We will analyze the effect of both policy to performace regarding the throughput and the response time for each user with varying workloads.
+
+\section{Constants}
+In the following chapters, if not different specified, we will consider this constants.
+\begin{itemize}
+\item \textbf{Number of resource block}, \(\#RB = 25\)
+\item \textbf{Number of users}, \(n = 10\)
+\item \textbf{Max RB size}, \(RBsize\textsubscript{max} = 93\)
+\item \textbf{Max packet size}, \(packetsize\textsubscript{max} = 75\)
+\item \textbf{Timeslot period}, \(T\textsubscript{slot} = 1\textnormal{ms}\)
+\end{itemize}
