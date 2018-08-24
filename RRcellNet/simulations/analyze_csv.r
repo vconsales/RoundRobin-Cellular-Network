@@ -769,15 +769,15 @@ while(1) {
 					geom_line() +
 					geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
 					geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
-						paste(round(max(antennaUniform$antennathroughput.mean)/(1024*1024), digits=3), 'Mbps'), '')), hjust=0.5, vjust=-0.5) +
+						paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
-						paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1024*1024), digits=3), 'Mbps'), '')), hjust=0.5, vjust=-0.5) +
+						paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
-						paste(round(max(antennaBinomial$antennathroughput.mean)/(1024*1024), digits=3), 'Mbps'), '')), hjust=0.5, vjust=-0.5) +
+						paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
-						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1024*1024), digits=3), 'Mbps'), '')), hjust=0.5, vjust=-0.5) +
+						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="Validation" & usertraffic==max(antennaValidation$usertraffic),
-						paste(round(max(antennaValidation$antennathroughput.mean)/(1024*1024), digits=3), 'Mbps'), '')), hjust=0.5, vjust=-0.5)
+						paste(round(max(antennaValidation$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5)
 
 				startDevice()
 				multiplot(antenna_graph)
