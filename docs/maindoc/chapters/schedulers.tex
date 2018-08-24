@@ -36,7 +36,7 @@ The obtained network, by setting \(n=10\), is the following:
 
 \section{Schedulers}
   In this section we will analyze the frame filling policy wich are defined in the module \texttt{Scheduler}.
-  Let's consider a user \(0\leq i\leq n\). Starting from user \(i\), the scheduler allocates a new \texttt{Frame Chunk} and fills it with packets taken from the \texttt{FIFOQueue\textsubscript{i}}. A \texttt{Frame Chunk} is considered full if it contains 25 RBs because it corresponds to the whole frame. At the next time slot will be served the user \((i+1)\textnormal{mod }n\). If the frame is not full the scheduler must allocate others \texttt{Frame Chunks} in order to fill the residual space using one of the two following policies. 
+  Let's consider a user \(0\leq i < n\). Starting from user \(i\), the scheduler allocates a new \texttt{Frame Chunk} and fills it with packets taken from the \texttt{FIFOQueue\textsubscript{i}}. A \texttt{Frame Chunk} is considered full if it contains 25 RBs because it corresponds to the whole frame. At the next time slot will be served the user \((i+1)\textnormal{mod }n\). If the frame is not full the scheduler must allocate others \texttt{Frame Chunks} in order to fill the residual space using one of the two following policies. 
 
 \begin{itemize}
 %\subsection{Round-Robin Frame Fill}
