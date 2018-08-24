@@ -259,8 +259,10 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 	plotdata <- rbind(targetmodule1, targetmodule2)
 	#print(plotdata)
 
+	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
-		geom_line() +
+		geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) +
 		geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1))
 
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
