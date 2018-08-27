@@ -35,12 +35,13 @@ We can compute the max \textit{slotted thorughput} for both users.
 	slotth^{0}_{out} &= \frac{\#RB \times RBsize_{0} \times 8 }{T_s} = \frac{25 \times 20 \times 8}{0.001} = 4 \textnormal{ Mbps}\nonumber \\ 
 	slotth^{1}_{out} &= \frac{\#RB \times RBsize_{1} \times 8 }{T_s} = \frac{25 \times 93 \times 8}{0.001} = 18.6 \textnormal{ Mbps} \nonumber
 \end{align} 
-At full load we expect that users compete to fill the frame. If the scheduler were fair, at full load, the average throughput would be \(th^{i}_{out} = (slotth^{i}_{out})/2\) since there are 2 users and the scheduler follow a round robin scheme, which is fair in principle. 
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/plotvalidation2}
   \caption{2nd validation scenario: throughput, response time}
   \label{fig:2nd validation scenario: throughput, response time}
 \end{figure}
+At full load we expect that users compete to fill the frame. If the scheduler were fair, at full load, the average throughput would be \(th^{i}_{out} = (slotth^{i}_{out})/2\) since there are 2 users and the scheduler follow a round robin scheme, which is fair in principle. 
+
 We see in the graph that throghput grows linear ad is equal for both users when \(1 \leq \lambda \leq 10 \). For \(\lambda > 10 \) the \texttt{Mobile User[0]} saturates, conversely \texttt{Mobile User[1]} continues to increase its throughput until it reaches saturation at \(\lambda = 30\).
 When \(\lambda = 10 \) the input flow is \(th_{in}^{0} = th_{in}^{1} = (40 \times 8)/0.0001 = 3.2\textnormal{ Mbps}\) and this result could be seen also in the graph. Infact when \(\lambda \le 10 \) both users are in stable state so \(th_{in} = th_{out}\). We can see that, when \(\lambda\) increases the mean throughput approches to the half of slotted throughput as said before. However there is a small difference between the expected mean throughput and the result of simulation. This oddity can be explained better by analyzing the following graph, which shows the mean resource block per frame assigned to users.
 \begin{figure}[H]
@@ -48,4 +49,8 @@ When \(\lambda = 10 \) the input flow is \(th_{in}^{0} = th_{in}^{1} = (40 \time
   \caption{2nd validation scenario: mean RB count}
   \label{fig:2nd validation scenario: mean RB count}
 \end{figure}
-By math the mean RB would be \(\#RB / 2 = 12.5 \) but the number of RB assigned per user is slightly different since, on average, 11 RBs are assigned to \texttt{Mobile User[0]} and 13 RBs are assigned to \texttt{Mobile User[1]}. This oddness is due to fragmentation of packet. In our simple model infact packets could not be fragmented so if a packet does not fill inside the last RB this RB is lost and it assigned to the next user. Note that in validation scenarios everything is fixed, also packet dimension, so there could be strangeness like that. However we can say that our model is quite accurate and can be used to simulate the network in more complex scenarios. 
+By math the mean RB would be \(\#RB / 2 = 12.5 \) but the number of RB assigned per user is slightly different since, on average, 11 RBs are assigned to \texttt{Mobile User[0]} and 13 RBs are assigned to \texttt{Mobile User[1]}. This oddness is due to fragmentation of packet. In our simple model infact packets can not be fragmented so if a packet does not fill inside the last RB this RB is lost and it assigned to the next user. Note that in validation scenarios everything is fixed, also packet dimension, so there could be strangeness like that. However we can say that our model is quite accurate and can be used to simulate the network in more complex scenarios. 
+There is another strange behavior wich involves response time. We can see that response time does not grows indefinitely but it seems to approch to \(ST/2\). This is can be explain quite easily.
+\[
+	E[RT] = \frac{\sum\limits^{ST}_{i=0} RT_i}{M} = \frac{a\sum\limits^{ST}_{i=0} x}{M} = \frac{ \frac{\max(RT)}{ST} \times \frac{ST(ST+1)}{2}}{M} = \frac{\max(RT) \times (ST+1)}{2M} = \frac{ST+1}{2} \frac{\max(RT)}{M} 
+\]
