@@ -4,8 +4,19 @@
 After building our model inside the \textbf{OMNeT++} we can proceed with the simulation in order to analyze the quantities wich we are interested. First of all we will simulate the model in very simple cases in order to be sure it reproduces the system's behavior correctly. We decided to validate our model by \textit{removing randomness}. This choice allows us to do some easy computation by hand and to verify if the result of simulation is consistent with them. Our model will be considered a good replica of the system if it will pass all the \textit{validation tests}. During the validation we will use the first scheduler: \textbf{Round-Robin Frame Fill} because it generates simulation which are easier to analyze and to compare with analitical results.
 
 \section{1\textsuperscript{st} test: fixed CQI, fixed \(\lambda\) rate, fixed packet size, 1 user}
-In this test we just one \texttt{Mobile Station} connected to the antenna wich always generates the same CQI for each timeslot. Inside the \texttt{Web Server} the \(\lambda\) rate is fixed and also the packet size. This is a very simple system with deterministic arrivals and deterministic service demand. We can compute the traffic that \texttt{Web Server} sends to the antenna as \[ th\textsubscript{in} = \frac{packetsize \times 8}{1/(1000\lambda)} \lbrack bps \rbrack \] 
-If the system is in a stable state the output throughput and the input throughput must be equal. The maximum output throughput is the one we have by setting all parameters to maximum values. \[ th\textsubscript{max} = \frac{\#RB \times RBsize\textsubscript{max} \times 8}{T\textsubscript{slot}} = \frac{25 \times 93 \times 8}{0.001} = 18.6 \textnormal{ Mbps} \] We can derive very easily the \(\lambda\textsubscript{max}\) rate wich produces the max throughput allowed by antenna. \[\lambda\textsubscript{max} = \frac{\#RB \times RBsize\textsubscript{max}}{1000 \times T\textsubscript{slot} \times packetsize\textsubscript{max}} = \frac{25 \times 93}{1000 \times 0.001 \times 75} = 31 \textnormal{ ms\textsuperscript{-1}} \] For \( 0<\lambda<\lambda\textsubscript{max} \) the system is a stable state and so \(th\textsubscript{in} = th\textsubscript{out}\). For higher \(\lambda\) the FIFOQueue grows indefinitely because the frame is not able to carry as much data in a time slot.
+In this test we just one \texttt{Mobile Station} connected to the antenna wich always generates the same CQI for each timeslot. Inside the \texttt{Web Server} the \(\lambda\) rate is fixed and also the packet size. This is a very simple system with deterministic arrivals and deterministic service demand. We can compute the traffic that \texttt{Web Server} sends to the antenna as 
+\begin{equation} 
+	th\textsubscript{in} = \frac{packetsize \times 8}{1/(1000\lambda)} \lbrack bps \rbrack 
+\end{equation} 
+If the system is in a stable state the output throughput and the input throughput must be equal. The maximum output throughput is the one we have by setting all parameters to maximum values. 
+\begin{equation} 
+	th\textsubscript{max} = \frac{\#RB \times RBsize\textsubscript{max} \times 8}{T\textsubscript{slot}} = \frac{25 \times 93 \times 8}{0.001} = 18.6 \textnormal{ Mbps}
+\end{equation} 
+We can derive very easily the \(\lambda\textsubscript{max}\) rate wich produces the max throughput allowed by antenna. 
+\begin{equation}
+	\lambda\textsubscript{max} = \frac{\#RB \times RBsize\textsubscript{max}}{1000 \times T\textsubscript{slot} \times packetsize\textsubscript{max}} = \frac{25 \times 93}{1000 \times 0.001 \times 75} = 31 \textnormal{ ms\textsuperscript{-1}} 
+\end{equation}
+For \( 0<\lambda<\lambda\textsubscript{max} \) the system is a stable state and so \(th\textsubscript{in} = th\textsubscript{out}\). For higher \(\lambda\) the FIFOQueue grows indefinitely because the frame is not able to carry as much data in a time slot.
 
 Let's consider all the simulations with the following parameters:
 \begin{itemize}
@@ -22,7 +33,9 @@ Let's consider all the simulations with the following parameters:
 
 \section{2\textsuperscript{nd} test: fixed CQI, fixed \(\lambda\) rate, fixed packet size, 2 users}
 In this test there are two \texttt{Mobile Stations} connected to antenna. As in the previous scenario all parameters are fixed. We have two indipendent flow of data from \texttt{Web Servers} to \texttt{Antenna} so the input throughtput could by computed as
-\[ th\textsubscript{in} = \frac{packetsize\textsubscript{0} \times 8}{1/(1000\lambda\textsubscript{0})} + \frac{packetsize\textsubscript{1} \times 8}{1/(1000\lambda\textsubscript{1})}\]
+\begin{equation} 
+th\textsubscript{in} = \frac{packetsize\textsubscript{0} \times 8}{1/(1000\lambda\textsubscript{0})} + \frac{packetsize\textsubscript{1} \times 8}{1/(1000\lambda\textsubscript{1})}
+\end{equation}
 For these simulation we have chosen the following parameters:
 \begin{itemize}
 	\item \(packetsize_{0} = packetsize_{1} = 40\)
@@ -50,7 +63,21 @@ When \(\lambda = 10 \) the input flow is \(th_{in}^{0} = th_{in}^{1} = (40 \time
   \label{fig:2nd validation scenario: mean RB count}
 \end{figure}
 By math the mean RB would be \(\#RB / 2 = 12.5 \) but the number of RB assigned per user is slightly different since, on average, 11 RBs are assigned to \texttt{Mobile User[0]} and 13 RBs are assigned to \texttt{Mobile User[1]}. This oddness is due to fragmentation of packet. In our simple model infact packets can not be fragmented so if a packet does not fill inside the last RB this RB is lost and it assigned to the next user. Note that in validation scenarios everything is fixed, also packet dimension, so there could be strangeness like that. However we can say that our model is quite accurate and can be used to simulate the network in more complex scenarios. 
-There is another strange behavior wich involves response time. We can see that response time does not grows indefinitely but it seems to approch to \(ST/2\). This is can be explain quite easily.
-\[
-	E[RT] = \frac{\sum\limits^{ST}_{i=0} RT_i}{M} = \frac{a\sum\limits^{ST}_{i=0} x}{M} = \frac{ \frac{\max(RT)}{ST} \times \frac{ST(ST+1)}{2}}{M} = \frac{\max(RT) \times (ST+1)}{2M} = \frac{ST+1}{2} \frac{\max(RT)}{M} 
-\]
+There is another strange behavior that involves response time. When the input traffic is too high we expect that response grows indefinitely since packets get queued. However, by observing the graph, the mean response time seems to approch to \(ST/2\). In the following graph it is displayed the response time of packets addressed to \texttt{Mobile Station[0]} when the rate \(lambda = 40\).
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/response-timeVec}
+  \caption{2nd validation scenario: response time(vector)}
+  \label{fig:2nd validation scenario: response time(vector)}
+\end{figure}
+We we can see cleary a linear relation between simulation time and response time when the system is unstable. We can describe the relation as:
+\begin{equation} 
+	RT(t) \approx \frac{\max(RT)}{ST}t, \quad 0\le t \le ST 
+\end{equation}
+The previous formula has that meaning: \textit{a packet which is generated at time t will have a response time about equal to \(RT(t)\)}. Now we can try to calculate the \textit{mean response time}.
+\begin{equation}
+\begin{split}
+E[RT] &= \frac{\sum\limits^{ST}_{t=0} RT(t)}{ST} = \frac{\sum\limits^{ST}_{t=0} \frac{\max(RT)}{ST}t}{ST} = \frac{\max(RT)}{ST^2}\sum\limits^{ST}_{t=0}t =
+	\\ &= \frac{\max(RT)}{ST^2}\frac{ST(ST+1)}{2} = \frac{\max(RT)}{2}\frac{ST+1}{ST} \approx \frac{\max(RT)}{2}
+\end{split}
+\end{equation}
+At the end we can observe that if the system is unstable \(RT(t)\) has a linear behavior so if we calculate the mean we obtain \(E[RT] \approx ST/2\). 
