@@ -1,0 +1,8 @@
+\chapter{Simulation: Uniform Scenarios}
+In this chapter we will consider \texttt{Mobile Stations} wich, at each timeslot, generate CQIs with an integer uniform distribution. In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
+\begin{itemize}
+	\item \(n=10\)
+	\item \(packetsize_{i} \sim U(3,75), \quad 0 \le i \le n-1\)
+	\item \(CQI_{i} \sim U(1,15), \quad 0 \le i \le n-1\)
+	\item \( \lambda = \lambda_{i} = 0.1 + 0.5k, \quad k\in\{1,2\ldots,8\}, \quad 0 \le i \le n-1\)
+\end{itemize}

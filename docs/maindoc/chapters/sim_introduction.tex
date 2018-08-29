@@ -1,0 +1,25 @@
+\chapter{Simulation: Introduction}
+
+In order to have true random and independent arrivals to antenna we need a 10 RNG, one for each \texttt{Web Server}. We also need RNG to generate packets with random size so others 10 RNG are neeeded. We need also a RNG for each \texttt{Mobile Station} in order to generate random CQIs at each timeslot. Overall the model requires 30 RNGs each of them initialized with a different seed in order to have independent pseudo-random variables. The seed-set is changed at every repetition in order to have different independent experiments. At the end of all repetions the results are aggregated by computing the mean and 95\% confidence intervals and can be plotted. 
+
+Let's consider for example the mean throughput for a rate \(\lambda^{*}\). By running each repetition we get the values \(X_{1},X_{2},\ldots X_{10}\). \(X_{i}\) it is a random variable wich represents the mean throughput for the repetition \(i\). For the CLT theorem \(X_{i}\) is a normal RV since it is obtained by summing up a huge number of \textit{slotted throughput}. We can estimate the mean \(\bar{X}\) and a 95\% confidence interval by using the \textit{Student's t distribution} because \(X_{i}\) are normal RV. 
+
+\begin{align}
+	\bar{X} &= \frac{X_{1}+X_{2}+\ldots+X_{10}}{10} \qquad S^{2} = \frac{1}{9}\sum_{i=1}^{10}(X_{i} - \bar{X})^{2} \\
+	CI_{0.95} &= \left[\bar{X} - \frac{S}{\sqrt10}t_{0.025,9}, \: \bar{X} + \frac{S}{\sqrt10}t_{0.025,9}\right]
+\end{align}
+
+Similar consideration can be done for others quanties wich we will analyze during simulations. Once we have computed the mean \(\bar{X}\) and its confidence interval we can do a box plot for that quantity. 
+
+\section{Constants}
+In the following chapters, if not different specified, we will consider this constants.
+\begin{itemize}
+\item \textbf{Number of resource block}, \(\#RB = 25\)
+\item \textbf{Number of users}, \(n = 10\)
+\item \textbf{Number of RNG}, \(\#RNG = 30\)
+\item \textbf{Max RB size}, \(RBsize\textsubscript{max} = 93\)
+\item \textbf{Max packet size}, \(packetsize\textsubscript{max} = 75\)
+\item \textbf{Timeslot period}, \(T\textsubscript{slot} = 1\textnormal{ms}\)
+\item \textbf{Number of repetions}, \(\#REP = 10\)
+\item \textbf{Simulation time}, \(ST = 60 \textnormal{s}\)
+\end{itemize}
