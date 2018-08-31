@@ -26,3 +26,17 @@ All parameters for simulations are summarized here and can be found in the file 
 \item \textbf{Simulation time}, \(ST = 60 \textnormal{s}\)
 \item \textbf{Warmup period}, \(WP = 0.3 \textnormal{s}\)
 \end{itemize}
+
+\section{Warm-Up Period Estimation}
+In the previous section we saw that the warm-up time is 0.3s, but we haven't specified yet how that value comes out.
+
+In this section we will illustrate how we have estimated the length of the warm-up period. We followed this approach: for each scenario and for each user we plotted the graph of the throughput and the response time and then for each repetition we applied the sliding moving average and then we computed the sample mean of the latter in order to see how many time it was required to converge around that value.
+We chosen the worst case among all of them, which graph is the following:
+
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/binomial_user0_rate9_6_rep9}
+  \caption{Worst Case for the Warm-Up period estimation}
+  \label{fig:warm_up time}
+\end{figure}
+
+So we saw that in the worst case the graph converged to the sample mean after \textbf{0.3s} and we chosen that value as \textbf{warm-up time}. 

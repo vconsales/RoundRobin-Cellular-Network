@@ -17,7 +17,7 @@ In these paragraph we describe how we modeled the Celluar Network described in t
     \item Binomial, each user generates a RV \(\sim Bin(n,p_i)\), where \(n\) is the number of users, and \( 0<p_i<1\) depends on the user i.
     \end{enumerate} 
 \end{itemize}
-To build our model and to run rimulations we used the framework \textbf{OMNeT++ v5}, so each item described before is defined by a \texttt{*.ned} file.
+To build our model and to run simulations we used the framework \textbf{OMNeT++ v5}, so each item described before is defined by a \texttt{*.ned} file.
 Each \texttt{Mobile Station} computes some statistics: slotted throughput (related to each time slot) and response time of received packets. The \texttt{Antenna} compute also statistics about the frame filling, which we will describe later.
 
 The \texttt{CellularNetwork.ned} file shows how the previous modules are connected to obtain the network. Since frames are sent in a unicast way, there are multiple instances of the Web Server module, one for each Mobile Station, seeded in a different way in order to have IID RV.
