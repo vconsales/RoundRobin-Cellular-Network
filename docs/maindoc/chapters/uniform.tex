@@ -1,8 +1,70 @@
 \chapter{Simulation: Uniform Scenarios}
-In this chapter we will consider \texttt{Mobile Stations} wich, at each timeslot, generate CQIs with an integer uniform distribution. In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
+In this chapter we will consider \texttt{Mobile Stations} which, at each timeslot, generate CQIs with an integer uniform distribution. In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
 \begin{itemize}
 	\item \(n=10\)
 	\item \(packetsize_{i} \sim U(3,75), \quad 0 \le i \le n-1\)
 	\item \(CQI_{i} \sim U(1,15), \quad 0 \le i \le n-1\)
 	\item \( \lambda = \lambda_{i} = 0.1 + 0.5k, \quad k\in\{1,2\ldots,8\}, \quad 0 \le i \le n-1\)
 \end{itemize}
+This scenario is almost similar to the NoFraming Validation test, but the main difference is that now we have fragmentation. This is due to the fact that \(packetsize\) is now uniform and leads to fragmentation. As we said before we expect to get worse throughput result due to the fact that some RB space will be left empty. Lets check the results.
+
+\begin{center}
+	INSERIRE IMMAGINE QUI ALL UNIF
+\end{center}
+\
+
+The first thing we can notice is that every client has the same saturation point (which depends on \(\lambda\)): this can be explained considering that scheduler is fair and every client generates, on average, the same amount of packets (which are also the same size on average). Response times are stable before reaching the common saturation point and after tends to arise indefinitely, until reaching a maximum. This maximum is the same shown in the \(2_{nd}\) Validation test and has the same explaination. So the only valid values for Response Times are generated between \(0 < \lambda < \lambda_{sat}\), which is common for each client.
+
+However the most important result, here, is the antenna total throughput. Lets see:
+
+\begin{center}
+	INSERIRE IMMAGINE QUI THANTENNA	UNIF
+\end{center}
+\
+
+Comparing to the \(3_{rd}\) NoFraming Validation test result, our global throughput is \textbf{higher} when framing is enabled. This is a very very strange result that \textbf{destroys our first intuition} about framing.
+
+How can the throughput get higher? Thinking about our model, we came up with a possible explanation. Framing policies, as we seen before, are basically two:
+\begin{itemize}
+	\item One RB cannot contain traffic from 2 or more different clients
+	\item If a packet cannot entirely fit the frame, it cannot be scheduled
+\end{itemize}
+The first policy cannot give us an higher throughput and this is already proven: we are telling that some frame space is eventually wasted, and this leads always to a worse or equal throughput result. So lets focus on the second policy: our intuition (hopefully correct this time) suggests us that framing, as a measure of how much RBs are not filled due to framing, is uniformly distributed for each client. Lets remember that the remaining space is allocated to other clients using a Fair policy (FairScheduler) and \(framesize_i\) depends on \(rbsize_i = f(CQI_i)\). Now lets try to analyze a single iteration of the scheduler algorithm, applied to 2 clients in the following state:
+\[\#RB = 1\]
+\[currentUser = 1\]
+\[CQI_1 = 1, \quad rbsize_1 = 3\]
+\[CQI_2 = 13, \quad rbsize_2 = 80\]
+Both have one packet of \(packetsize=75\) (which is the maximum we can have) in backlog. The first client cannot fit his packet into the frame chunk, so remaining RBs (in our case just 1) are allocated to the client 2, which can now fit his packet into his frame chunk. The main factor, here, is \(framechunksize_i = remainingRBfor_i * rbsize_i\): we are telling that client with the best CQI can fit more likely his packets into the frame, despite of the current serving user, due to the fact that his \(framechunksize_i\) is bigger than the other clients. This reminds us a bit of BestCQI Scheduler policies.
+
+However we must consider that the previous case does not describe completely all the possible behaviors of the system. In fact, lets consider this other case:
+
+\[\#RB = 1\]
+\[currentUser = 1\]
+\[CQI_1 = 3, \quad rbsize_1 = 6, backlog = \textnormal{1 packet of 75 bytes}\]
+\[CQI_2 = 1, \quad rbsize_2 = 3, backlog = \textnormal{1 packet of 3 bytes}\]
+\[CQI_3 = 13, \quad rbsize_3 = 80, backlog = \textnormal{1 packet of 75 bytes}\]
+
+Client 1 packet cannot be scheduled (\(75 > 6\)), so we go next to the second user which can now fit his packet into the new frame chunk (3 = 3). As we can see here, the RB is allocated to the user with the worst CQI (client 2) and not the best (client 3). So we can also deduce that a client with a small packet in backlog is more likely to fit his packet into the frame.
+
+Combining this result with the previous we can infer that a packet is more likely to fit if:
+\begin{itemize}
+	\item The packet is small
+	\item The user CQI is high
+\end{itemize}
+We can add another case:
+\[\#RB = 1\]
+\[currentUser = 1\]
+\[CQI_1 = 3, \quad rbsize_1 = 6, backlog = \textnormal{1 packet of 75 bytes}\]
+\[CQI_2 = 1, \quad rbsize_2 = 3, backlog = \textnormal{1 packet of 75 bytes}\]
+\[CQI_3 = 2, \quad rbsize_3 = 3, backlog = \textnormal{1 packet of 75 bytes}\]
+None of the packets cannot be inserted into the framechunk, so the RB is completely wasted. This is the case that lowers the throughput, due to the fact that packet sizes are small and CQIs are low. However, in our scenarios (Uniform, UniformBest, Binomial ...) the number of users is high enough (10 users) to get, more likely, at least a small packet and/or at least a good enough CQIs to not waste the remaining space.
+
+At the end we can see that this result lies between \textit{NoFramingTest} and \textit{Uniform BestCQI} results: in fact ``The user CQI is high'' is the main policy of BestCQI scheduler. However, in that scenario, we can't consider ``The packet is small'' because BestCQI user is \textbf{always} selected as first for the residual frame filling, and this increases the throughput for BestCQI scenario.
+
+CQIs and packet sizes are always uniform for all clients, so we suspect that all clients will benefit of a small and equal throughput increase.
+\begin{center}
+	INSERIRE IMMAGINE QUI ALLTH NOFRAMINGTEST EVENTUALMENTE, magari confrontare il test con quelli dell'uniform e far vedere che i throughput sono più bassi in NoFrameFilling
+\end{center}
+\
+
+Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't exactly prove this result or make an exact model of the system.
