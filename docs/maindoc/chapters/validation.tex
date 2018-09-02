@@ -81,3 +81,52 @@ E[RT(ST)] &= \frac{\sum\limits^{ST}_{t=0} RT(t)}{ST} = \frac{\sum\limits^{ST}_{t
 \end{split}
 \end{equation}
 At the end we can observe that if the system is unstable \(RT(t)\) has a linear behavior so if we calculate the mean at the end of simulation we obtain \(E[RT(ST)] \approx ST/2\). 
+
+
+\section{3\textsuperscript{st} test: NoFramingTest (uniform CQI, exponential interarrivals, fixed packet size, 10 users}
+
+This is a test to ultimately validate the model shown in the previous chapter. Build a full matematical model starting from the requirements it's too difficult, but having no one is not helpful in explaining the simulation results. So we started to build simple models leaving off some of the requirements and targeting only some conditions (like saturation). In our case one of the most difficult things to model is packet framing: as the requirements said, every RB cannot contain packets from two or more different users. This means that there will be some wasted space to consider. Furthermore, if a packet cannot completely fill the frame, it cannot be scheduled and the scheduler moves to the next user.
+
+A question now arises: how this packet framing policy will influence our results? Intuition make us think that total antenna throughput will get somewhat worse, just thinking about the wasted space.
+To confirm this intuition we set up another scenario, called NoFramingTest, which will be running using the following parameters:
+
+\begin{itemize}
+	\item \(\#users = 10\)
+	\item \(CQI_i \sim U(0,15)\)
+	\item \(packetsize_i=25\ Bytes\)
+	\item \(interarrivalrate_i \sim exp(\lambda)\)
+\end{itemize}
+
+The most strange parameter here is \(packetsize\). This is a simple way to not having framing at all in our simulation. We could end up fixing \(packetsize=1\ Byte\), which would be the simplest way, however simulation would be too heavy to run at higher traffic rates (we tried, but our PCs started frying). Recalling that we need just to check throughput in saturation, we can suppose that every frame is only filled with packets from the currently selected user (using RR policy).
+Studying the formula that defines the total frame size of each client in our model:
+\[framesize_i = \#RB*rbsize_i\]
+where
+\[\#RB = 25\]
+\[rbsize_i = f(CQI_i), CQI_i \sim U(1,15)\]
+computing the packet count that will fill the frame as:
+\[\#packets_i = framesize_i/packetsize\]
+where \(packetsize\) is fixed, our goal is to find a \(packetsize\) such that \(\#packets_i\) is a natural number (all packets fill exactly the frame) for each client (\(i\)).
+As we said, \(packetsize=1\) is a solution, however another interesting solution is \(packetsize=25\). This is due to the fact the \(\#RB\) is fixed and used to compute every client frame size. Note that this is valid only if frame is filled every time by a single client (as the previous assumption). Lets check the results:
+
+\begin{center}
+	INSERIRE GRAFICO THANTENNA QUI\\
+	INSERIRE GRAFICO FILLRB QUI\\
+	(dovrebbe essere esattamente a zero quando i client saturano)
+\end{center}
+\
+
+A simple mathematical model to compute antenna total throughput can be:
+\[E[th_{antenna}] = \frac{\sum_{i=1}^{\#clients} 25*E[rbsize_i]}{\#clients*(1/T_{slot})} \]
+\(rbsize_i\) is a RV variable with an not known note distribution, however
+\[\forall i, \quad rbsize_i = f(CQI \sim U(1,15))\]
+This means we can simply use the general formula for functions of RVs
+\[E[x] = \sum_{x_i : g(x_i)=y_i}^{} g(x)p(x) = E[g(x)]\]
+Considering that
+\[f(CQI) = [3,3,6,11,15,20,25,36,39,50,63,72,80,93,93] \]
+our result, that will be used also in other computations, is
+\[\forall i, \quad E[rbsize_i] = 40.6\ byte/s\]
+which is constant for all clients. In this case the initial model can be simplified to
+\[E[th_{antenna}] = \frac{25*E[rbsize_i]}{1/T_{slot}} *8 = 8.12\ Mbit/s\]
+The mean \textbf{matches exactly} the simulation results!
+
+This test is not only for a validation purpose, but it is a starting point to study how fragmentation impacts network performances. We will see this later.
