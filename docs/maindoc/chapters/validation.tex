@@ -85,7 +85,7 @@ E[RT(ST)] &= \frac{\sum\limits^{ST}_{t=0} RT(t)}{ST} = \frac{\sum\limits^{ST}_{t
 At the end we can observe that if the system is unstable \(RT(t)\) has a linear behavior so if we calculate the mean at the end of simulation we obtain \(E[RT(ST)] \approx ST/2\). 
 
 
-\section{3\textsuperscript{st} test: NoFramingTest, uniform CQI, exponential interarrivals, fixed packet size, 10 users}
+\section{3\textsuperscript{rd} test: NoFramingTest, uniform CQI, exponential interarrivals, fixed packet size, 10 users}
 
 This is a test to validate eventually the model shown in the previous chapter. It's too difficult to build a full matematical model starting from the requirements, but having no one is not helpful in explaining the simulation results. So we started to build simple models by leaving off some of the requirements and by considering only some specific conditions (like saturation). In our case one of the most difficult things to model is packet framing: as the requirements said, every RB cannot contain packets from two or more different users. This means that there will be some wasted space to consider. Furthermore, if a packet cannot completely fill the frame, it cannot be scheduled and the scheduler moves to the next user.
 
@@ -104,7 +104,7 @@ Studying the formula that defines the total frame size of each client in our mod
 \begin{equation}
 	\begin{split}
 	&rbsize_i = f(CQI_i) \\
-	&framesize_i = \#RB*rbsize_i
+	&framesize_i = \#RB \times rbsize_i
 	\end{split}
 \end{equation}
 The number of packets that will fill the frame can be computed as:
