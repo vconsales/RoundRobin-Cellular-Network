@@ -6,7 +6,7 @@ In these paragraph we describe how we modeled the Celluar Network described in t
    
    The size of each packet is an integer RV \(\sim U(3,75)\), since the service demand has to be uniform and consistent with the frame size. Moreover the packet interarrival time to the antenna has to be an exponential RV, so each packet is generated properly to satisfy this requirements.
 
-   \item \textbf{An Antenna}, which has FIFO queue for each user. Packets received form \textbf{Web Servers} are stored inside queues and then are sent in a unicast way according to the Round Robin policy (which is described in the next section). 
+   \item \textbf{An Antenna}, which has FIFO \textbf{infinite} queue for each user. Packets received form \textbf{Web Servers} are stored inside queues and then are sent in a unicast way according to the Round Robin policy (which is described in the next section). 
    
    \item \textbf{A Mobile Station}, which personifies a generic user connected to the antenna. On each timeslot it sends a channel quality indicator (CQI), which is a number between 1 and 15 that define the number of bytes the antenna can pack into a Resource Block (RB).
    
