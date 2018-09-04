@@ -1,7 +1,7 @@
 \chapter{Simulation}
 
 \section{Introduction}
-How we said in the previous chapter we built the model inside the framework \textbf{OMNeT++ v5}. The definition of network \textit{(CellularNetwork.ned)} and their components can be found in the directory \textit{RRCellNet/src}. We decided to analyze it when 10 \texttt{Mobile Stations} are connected to the \texttt{Antenna}.
+How we said in the previous chapter we built the model inside the framework \textbf{OMNeT++ v5}. The definition of network \textit{(CellularNetwork.ned)} and their components can be found in the directory \textit{RRCellNet/src}. We decided to analyze it when 10 \texttt{Mobile Stations} are connected to the \texttt{Antenna}. In order to simplify the model we represented the network with a \textit{Star Topology}. \texttt{Mobile Stations} receive packets through unicast channel \texttt{without transmission delay}.
 
 We recall that \texttt{Web Servers} are sources of packets addressed to \texttt{Mobile Stations}. In order to have true random and independent arrivals to \texttt{Antenna} we need a 10 RNG, one for each \texttt{Web Server}. We also need RNG to generate packets with random size so others 10 RNG are neeeded. We need also a RNG for each \texttt{Mobile Station} in order to generate random CQIs at each timeslot. Overall the model requires 30 RNGs each of them initialized with a different seed in order to have independent pseudo-random variables. The seed-set is changed at every repetition to have different independent experiments. At the end of all repetions the results are aggregated by computing the mean and 95\% confidence interval. 
 
