@@ -1,4 +1,5 @@
 \chapter{Simulation: Uniform Scenarios}
+\section{Introduction}
 In this chapter we will consider \texttt{Mobile Stations} which, at each timeslot, generate CQIs with an integer uniform distribution. In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
 \begin{itemize}
 	\item \(n=10\)
@@ -6,7 +7,12 @@ In this chapter we will consider \texttt{Mobile Stations} which, at each timeslo
 	\item \(CQI_{i} \sim U(1,15), \quad 0 \le i \le n-1\)
 	\item \( \lambda = \lambda_{i} = 0.1 + 0.5k, \quad k\in\{1,2\ldots,10\}, \quad 0 \le i \le n-1\)
 \end{itemize}
-This scenario is almost similar to the NoFraming Validation test, but the main difference is that now we have fragmentation. This is due to the fact that \(packetsize\) is now uniform and leads to fragmentation. As we said before we expect to get worse throughput result due to the fact that some RB space will be left empty. Lets check the results.
+This scenario is almost similar to the NoFraming Validation test, but the main difference is that \(packetsize\) is a uniform RV. As we said before we expect to get worse throughput result due to the fact that some RB space will be left empty because packets cannot be fragmented. 
+
+We will simulate the scenario with both scheduler and we will check if our first intuition is true or not and the impact of \textbf{framing} in the average performance metrics.
+
+\section{Uniform CQI, Fair Scheduler}
+In this simulation we will consider the basic \textbf{Fair Scheduler}. We remember that, in this case, if \(currentUser\) empties his queue or has a packet that is bigger than \(RB_{size}\) the scheduler will consider the next users.
 
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/unif}
@@ -22,7 +28,7 @@ However the most important result, here, is the antenna total throughput. Lets s
   \label{fig:Antenna throughput: UniformCQI, Validation-NoFramingTest}
 \end{figure}
 
-Comparing to the 3\textsuperscript{rd} NoFraming Validation test result, our global throughput is \textbf{higher} when framing is enabled. This is a very very strange result that \textbf{destroys our first intuition} about framing.
+Comparing to the 3\textsuperscript{rd} NoFraming Validation test result, our global throughput is \textbf{higher}. This is a very very strange result that \textbf{destroys our first intuition} about the impact of framing.
 
 How can the throughput get higher? Thinking about our model, we came up with a possible explanation. Framing policies, as we seen before, are basically two:
 \begin{itemize}
@@ -59,12 +65,21 @@ We can add another case:
 \[CQI_3 = 2, \quad rbsize_3 = 3, backlog = \textnormal{1 packet of 75 bytes}\]
 None of the packets cannot be inserted into the framechunk, so the RB is completely wasted. This is the case that lowers the throughput, due to the fact that packet sizes are small and CQIs are low. However, in our scenarios (Uniform, UniformBest, Binomial ...) the number of users is high enough (10 users) to get, more likely, at least a small packet and/or at least a good enough CQIs to not waste the remaining space.
 
-At the end we can see that this result lies between \textit{NoFramingTest} and \textit{Uniform BestCQI} results: in fact ``The user CQI is high'' is the main policy of BestCQI scheduler. However, in that scenario, we can't consider ``The packet is small'' because BestCQI user is \textbf{always} selected as first for the residual frame filling, and this increases the throughput for BestCQI scenario.
+%At the end we can see that this result lies between \textit{NoFramingTest} and \textit{Uniform BestCQI} results: in fact ``The user CQI is high'' is the main policy of BestCQI scheduler. However, in that scenario, we can't consider ``The packet is small'' because BestCQI user is \textbf{always} selected as first for the residual frame filling, and this increases the throughput for BestCQI scenario.
 
-CQIs and packet sizes are always uniform for all clients, so we suspect that all clients will benefit of a small and equal throughput increase.
-\begin{center}
-	INSERIRE IMMAGINE QUI ALLTH NOFRAMINGTEST EVENTUALMENTE, magari confrontare il test con quelli dell'uniform e far vedere che i throughput sono più bassi in NoFrameFilling
-\end{center}
-\
+%CQIs and packet sizes are always uniform for all clients, so we suspect that all clients will benefit of a small and equal throughput increase.
+%\begin{center}
+%	INSERIRE IMMAGINE QUI ALLTH NOFRAMINGTEST EVENTUALMENTE, magari confrontare il test con quelli dell'uniform e far vedere che i throughput sono più bassi in NoFrameFilling
+%\end{center}
+%\
 
-Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't exactly prove this result or make an exact model of the system.
+Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't make an exact model of the system in order to proof this result analytically. 
+At the end of simulation we can summarize these results about the Uniform Scenario with Fair Scheduler:
+\begin{itemize}
+	\item Saturation rate \(\lambda = 3.1\)
+	\item Antenna throughput \(th_{antenna} = 8.62 \textnormal{Mbps}\)
+	\item User throughput \(th_{i} = 868 \textnormal{kbps}\)
+\end{itemize} 
+
+\section{Uniform, Best CQI scheduler}
+Now we will simulate the scenario by using the second scheduler. If there were not \textbf{framing} the performance of both scheduler would be the same but, as seen before, \textbf{framing} is present and has a great impact in performance. We can expect this scheduler will have better performance in throughput since it fills the residual space inside the frame by using packets addressed to users with higher CQIs.

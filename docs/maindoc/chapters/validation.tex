@@ -99,7 +99,7 @@ To confirm this intuition we set up another scenario, called NoFramingTest, whic
 	\item \(interarrivalrate_i \sim exp(\lambda)\)
 \end{itemize}
 
-The most strange parameter here is \(packetsize\). This is a simple way to not having framing at all in our simulation. We could end up fixing \(packetsize=1 \textnormal{ B}\), which would be the simplest way, however simulation would be too heavy to run at higher traffic rates (we tried, but our PCs started frying). Recalling that we need just to check throughput in saturation, we can suppose that every frame is only filled with packets from the currently selected user (using RR policy).
+The most strange parameter here is \(packetsize\). This is a simple way to have no framing at all in our simulation. We could end up fixing \(packetsize=1 \textnormal{ B}\), which would be the simplest way, however simulation would be too heavy to run at higher traffic rates (we tried, but our PCs started frying). Recalling that we need just to check throughput in saturation, we can suppose that every frame is only filled with packets from the currently selected user (using RR policy).
 Studying the formula that defines the total frame size of each client in our model:
 \begin{equation}
 	\begin{split}
