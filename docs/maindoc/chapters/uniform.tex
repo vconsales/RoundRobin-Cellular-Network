@@ -16,8 +16,8 @@ In this simulation we will consider the basic \textbf{Fair Scheduler}. We rememb
 
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/unif}
-  \caption{uniform scenario: throughput, response time}
-  \label{fig:uniform scenario: throughput, response time}
+  \caption{Uniform scenario - Fair: throughput, response time}
+  \label{fig:Uniform scenario - Fair: throughput, response time}
 \end{figure}
 The first thing we can notice is that every client has the same saturation point (which depends on \(\lambda\)): this can be explained considering that scheduler is fair and every client generates, on average, the same amount of packets (which are also the same size on average). Response times are stable before reaching the common saturation point and after tends to arise indefinitely, until reaching a maximum. This maximum is the same shown in the \(2_{nd}\) Validation test and has the same explaination. So the only valid values for Response Times are generated between \(0 < \lambda < \lambda_{sat}\), which is common for each client. 
 
@@ -88,3 +88,32 @@ At the end of simulation we can summarize these results about the Uniform Scenar
 
 \section{Uniform, Best CQI scheduler}
 Now we will simulate the scenario by using the second scheduler. If there were not \textbf{framing} the performance of both scheduler would be the same but, as seen before, \textbf{framing} is present and has a great impact in performance. We can expect this scheduler will have better performance in throughput since it fills the residual space inside the frame by using packets addressed to users with higher CQIs.
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/unifbest}
+   \caption{Uniform scenario - BestCQI: throughput, response time}
+  \label{fig:Uniform scenario - BestCQI: throughput, response time}
+\end{figure}
+We can see cleary an increase of throughput per each user and smaller the response time with respect to fair scheduler. The saturation point is the same at about \(\lambda=3.1\) but the throughput as we said is higher. The reason is that the residual space in the frame is used better since it is selected the user with the best CQI in order to carry as much data as possible. We can see also that the throughput distribution is fair among the users if we plot the lorenz curves for throughput and response time.
+\begin{figure}[H]
+\begin{minipage}[b]{8cm}
+	\includegraphics[width=7.5cm]{images/lorenzTH-unifbest}
+\end{minipage}
+\begin{minipage}[b]{8cm}
+	\includegraphics[width=7.5cm]{images/lorenzRT-unifbest}
+\end{minipage}
+	\caption{Uniform scenario - BestCQI: lorenz curves}
+  	\label{fig:Uniform scenario - BestCQI: lorenz curves}
+\end{figure}
+At the end in order to choose the best scheduler for that scenario we decided to compare the empirical cdf of throughput near the saturation point \(\lambda=3.1\).
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest2.1}.png}
+   \caption{Uniform scenario: ECDF comparison \(\lambda=2.1\)}
+  \label{fig:Uniform scenario: ECDF comparison lambda2.1}
+\end{figure}
+
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest3.1}.png}
+   \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
+  \label{fig:Uniform scenario: ECDF comparison lambda3.1}
+\end{figure}
+We observe that the Best CQI Scheduler is definitely better than the Fair one when \(\lambda \ge \lambda_{sat}\) otherwise the performance are about the same. The fairness is garanted by both scheduler in all \textit{arrival rates} but this is not surprising CQI and service demand have the same uniform distribution for all users. The result is that each users exploits an equal slice of available resources to the antenna.  
