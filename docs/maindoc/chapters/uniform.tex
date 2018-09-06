@@ -93,6 +93,13 @@ Now we will simulate the scenario by using the second scheduler. If there were n
    \caption{Uniform scenario - BestCQI: throughput, response time}
   \label{fig:Uniform scenario - BestCQI: throughput, response time}
 \end{figure}
+
+Result for Uniform Scenario with Best CQI Scheduler in saturation:
+\begin{itemize}
+	\item Saturation rate \(\lambda = 3.1\)
+	\item Antenna throughput \(th_{antenna} = 8981747 \pm 14355 \textnormal{ bps}\), \textit{conf lvl 95\%}
+	\item User throughput \(th_{i} = 897148 \pm 4772 \textnormal{ bps}\), \textit{conf lvl 95\%}
+\end{itemize} 
 We can see cleary an increase of throughput per each user and smaller the response time with respect to fair scheduler. The saturation point is the same at about \(\lambda=3.1\) but the throughput as we said is higher. The reason is that the residual space in the frame is used better since it is selected the user with the best CQI in order to carry as much data as possible. We can see also that the throughput distribution is fair among the users if we plot the lorenz curves for throughput and response time.
 \begin{figure}[H]
 \begin{minipage}[b]{8cm}
@@ -116,4 +123,5 @@ At the end in order to choose the best scheduler for that scenario we decided to
    \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
   \label{fig:Uniform scenario: ECDF comparison lambda3.1}
 \end{figure}
-We observe that the Best CQI Scheduler is definitely better than the Fair one when \(\lambda \ge \lambda_{sat}\) otherwise the performance are about the same. The fairness is garanted by both scheduler in all \textit{arrival rates} but this is not surprising CQI and service demand have the same uniform distribution for all users. The result is that each users exploits an equal slice of available resources to the antenna.  
+
+We observe that the Best CQI Scheduler is definitely better than the Fair one when \(\lambda \ge \lambda_{sat}\) otherwise the performance are about the same. The fairness is garanted by both scheduler in all \textit{arrival rates} but this is not surprising CQI and service demand have the same uniform distribution for all users. The result is that each users exploits an equal slice of available resources to the antenna. 
