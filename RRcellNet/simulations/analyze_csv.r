@@ -482,6 +482,7 @@ regressionTestData <- aggregateClientMeasures(preparedRegressionData)
 ## USERS STATISTICS
 
 # load all experiments data from CSVs
+preparedNoFramingData <- prepareMeasures("data_noframing.csv")
 preparedUniformData <- prepareMeasures("data_uni.csv")
 preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
 preparedBinomialData <- prepareMeasures("data_binom.csv")
@@ -489,6 +490,7 @@ preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
 preparedValidationData <- prepareMeasures("data_validation.csv")
 
 # compute confidence intervals and means for each user (and for each scenario)
+noFramingData <- aggregateClientMeasures(preparedNoFramingData)
 uniformData <- aggregateClientMeasures(preparedUniformData)
 uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
@@ -496,12 +498,14 @@ binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
 validationData <- aggregateClientMeasures(preparedValidationData)
 
 ## SCHEDULER STATISTICS
+schedulerPreparedNoFramingData <- prepareSchedulerMeasures("data_noframing.csv")
 schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
 schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
 schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
 schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
 schedulerPreparedValidationData <- prepareSchedulerMeasures("data_validation.csv")
 
+schedulerNoFramingData <- aggregateSchedulerMeasures(schedulerPreparedNoFramingData)
 schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
 schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
 schedulerBinomialData <- aggregateSchedulerMeasures(schedulerPreparedBinomialData)
@@ -510,29 +514,33 @@ schedulerValidationData <- aggregateSchedulerMeasures(schedulerPreparedValidatio
 
 ## ANTENNA STATISTICS
 
+antennaNoFraming <- aggregateAntennaMeasures(preparedNoFramingData)
 antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
 antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
 antennaBinomial <- aggregateAntennaMeasures(preparedBinomialData)
 antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
 antennaValidation <- aggregateAntennaMeasures(preparedValidationData)
 
-antennaAll <- rbind(antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI, antennaValidation)
+antennaAll <- rbind(antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI, antennaValidation)
 
 
 # scenario string parsing
 parsescenario_prep <- list("regr" = preparedRegressionData,
+							"nofram"  = preparedNoFramingData,
 							"unif" = preparedUniformData,
 							"unifbest" = preparedUniformBestCQIData,
 							"binom" = preparedBinomialData,
 							"binombest" = preparedBinomialBestCQIData,
 							"validation" = preparedValidationData)
 parsescenario_data <- list("regr" = regressionTestData,
+							"nofram" = noFramingData,
 							"unif" = uniformData,
 							"unifbest" = uniformBestCQIData,
 							"binom" = binomialData,
 							"binombest" = binomialBestCQIData,
 							"validation" = validationData)
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
+							"nofram" = schedulerNoFramingData,
 							"unif" = schedulerUniformData,
 							"unifbest" = schedulerUniformBestCQIData,
 							"binom" = schedulerBinomialData,
@@ -789,7 +797,9 @@ while(1) {
 					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
 						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="Validation" & usertraffic==max(antennaValidation$usertraffic),
-						paste(round(max(antennaValidation$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5)
+						paste(round(max(antennaValidation$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) + 
+					geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
+						paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) 
 
 				startDevice()
 				multiplot(antenna_graph)
