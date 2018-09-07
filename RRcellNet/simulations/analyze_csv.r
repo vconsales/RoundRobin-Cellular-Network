@@ -10,7 +10,7 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 	plots <- c(list(...), plotlist)
 	numPlots = length(plots)
 
-	ggsave("plot.png", dpi=320)
+	#ggsave("plot.png", dpi=320)
 	if (is.null(layout)) {
 		layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
 		ncol = cols, nrow = ceiling(numPlots/cols))
@@ -267,7 +267,7 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
 		geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
 		geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1))
-	ggsave("plotth.png", dpi=320)	
+	#ggsave("plotth.png", dpi=320)	
 
 	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)	
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
@@ -276,7 +276,7 @@ plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleinde
 
 	plotdouble_singlelegend(plot_th, plot_rt)
 
-	ggsave("plotresp.png", dpi=320)
+	#ggsave("plotresp.png", dpi=320)
 }
 
 plotModuleRBComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
@@ -576,6 +576,16 @@ while(1) {
 				cat("mode usage: mode <modename>\n")
 			else {
 				switchOutput(params[2])
+			}
+		},
+		ggsave={
+			if(length(params) > 2)
+				cat("mode usage: ggsave [<filename>]\n")
+			else if(length(params) == 2) {
+				ggsave(params[2], dpi=320)
+			}
+			else if(length(params) == 1){
+				ggsave("plot.png", dpi=320)
 			}
 		},
 		all={
