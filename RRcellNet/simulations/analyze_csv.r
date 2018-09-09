@@ -4,6 +4,8 @@ library(gridExtra)
 library(grid)
 library(tikzDevice)
 
+basedir <- ""
+
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 	library(grid)
@@ -476,23 +478,27 @@ startDevice <- function()
 		cat("plotly is not yet supported.\n")
 }
 
+getPath <- function(filename) {
+	return(paste(basedir,filename,sep=""))
+}
+
 # disable scientific notation
 options(scipen = 999)
 
 ## REGRESSION TEST
-preparedRegressionData <- prepareMeasures("data_regr.csv")
+preparedRegressionData <- prepareMeasures(getPath("data_regr.csv"))
 regressionTestData <- aggregateClientMeasures(preparedRegressionData)
 
 ## USERS STATISTICS
 
 # load all experiments data from CSVs
-preparedValidation1Data <- prepareMeasures("data_validation_1.csv")
-preparedValidation2Data <- prepareMeasures("data_validation_2.csv")
-preparedNoFramingData <- prepareMeasures("data_noframing.csv")
-preparedUniformData <- prepareMeasures("data_uni.csv")
-preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
-preparedBinomialData <- prepareMeasures("data_binom.csv")
-preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
+preparedValidation1Data <- prepareMeasures(getPath("data_validation_1.csv"))
+preparedValidation2Data <- prepareMeasures(getPath("data_validation_2.csv"))
+preparedNoFramingData <- prepareMeasures(getPath("data_noframing.csv"))
+preparedUniformData <- prepareMeasures(getPath("data_uni.csv"))
+preparedUniformBestCQIData <- prepareMeasures(getPath("data_uni_bestcqi.csv"))
+preparedBinomialData <- prepareMeasures(getPath("data_binom.csv"))
+preparedBinomialBestCQIData <- prepareMeasures(getPath("data_binom_bestcqi.csv"))
 
 # compute confidence intervals and means for each user (and for each scenario)
 validation1Data <- aggregateClientMeasures(preparedValidation1Data)
@@ -504,13 +510,13 @@ binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
 
 ## SCHEDULER STATISTICS
-schedulerPreparedValidation1Data <- prepareSchedulerMeasures("data_validation_1.csv")
-schedulerPreparedValidation2Data <- prepareSchedulerMeasures("data_validation_2.csv")
-schedulerPreparedNoFramingData <- prepareSchedulerMeasures("data_noframing.csv")
-schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
-schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
-schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
-schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
+schedulerPreparedValidation1Data <- prepareSchedulerMeasures(getPath("data_validation_1.csv"))
+schedulerPreparedValidation2Data <- prepareSchedulerMeasures(getPath("data_validation_2.csv"))
+schedulerPreparedNoFramingData <- prepareSchedulerMeasures(getPath("data_noframing.csv"))
+schedulerPreparedUniformData <- prepareSchedulerMeasures(getPath("data_uni.csv"))
+schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures(getPath("data_uni_bestcqi.csv"))
+schedulerPreparedBinomialData <- prepareSchedulerMeasures(getPath("data_binom.csv"))
+schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures(getPath("data_binom_bestcqi.csv"))
 
 schedulerValidation1Data <- aggregateSchedulerMeasures(schedulerPreparedValidation1Data)
 schedulerValidation2Data <- aggregateSchedulerMeasures(schedulerPreparedValidation2Data)
