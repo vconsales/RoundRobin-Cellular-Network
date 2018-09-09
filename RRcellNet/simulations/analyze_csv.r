@@ -486,46 +486,51 @@ regressionTestData <- aggregateClientMeasures(preparedRegressionData)
 ## USERS STATISTICS
 
 # load all experiments data from CSVs
+preparedValidation1Data <- prepareMeasures("data_validation_1.csv")
+preparedValidation2Data <- prepareMeasures("data_validation_2.csv")
 preparedNoFramingData <- prepareMeasures("data_noframing.csv")
 preparedUniformData <- prepareMeasures("data_uni.csv")
 preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
 preparedBinomialData <- prepareMeasures("data_binom.csv")
 preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
-preparedValidationData <- prepareMeasures("data_validation.csv")
 
 # compute confidence intervals and means for each user (and for each scenario)
+validation1Data <- aggregateClientMeasures(preparedValidation1Data)
+validation2Data <- aggregateClientMeasures(preparedValidation2Data)
 noFramingData <- aggregateClientMeasures(preparedNoFramingData)
 uniformData <- aggregateClientMeasures(preparedUniformData)
 uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
-validationData <- aggregateClientMeasures(preparedValidationData)
 
 ## SCHEDULER STATISTICS
+schedulerPreparedValidation1Data <- prepareSchedulerMeasures("data_validation_1.csv")
+schedulerPreparedValidation2Data <- prepareSchedulerMeasures("data_validation_2.csv")
 schedulerPreparedNoFramingData <- prepareSchedulerMeasures("data_noframing.csv")
 schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
 schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
 schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
 schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
-schedulerPreparedValidationData <- prepareSchedulerMeasures("data_validation.csv")
 
+schedulerValidation1Data <- aggregateSchedulerMeasures(schedulerPreparedValidation1Data)
+schedulerValidation2Data <- aggregateSchedulerMeasures(schedulerPreparedValidation2Data)
 schedulerNoFramingData <- aggregateSchedulerMeasures(schedulerPreparedNoFramingData)
 schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
 schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
 schedulerBinomialData <- aggregateSchedulerMeasures(schedulerPreparedBinomialData)
 schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedBinomialBestCQIData)
-schedulerValidationData <- aggregateSchedulerMeasures(schedulerPreparedValidationData)
 
 ## ANTENNA STATISTICS
 
+antennaValidation1 <- aggregateAntennaMeasures(preparedValidation1Data)
+antennaValidation2 <- aggregateAntennaMeasures(preparedValidation2Data)
 antennaNoFraming <- aggregateAntennaMeasures(preparedNoFramingData)
 antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
 antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
 antennaBinomial <- aggregateAntennaMeasures(preparedBinomialData)
 antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
-antennaValidation <- aggregateAntennaMeasures(preparedValidationData)
 
-antennaAll <- rbind(antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI, antennaValidation)
+antennaAll <- rbind(antennaValidation1, antennaValidation2, antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
 
 # scenario string parsing
@@ -535,21 +540,24 @@ parsescenario_prep <- list("regr" = preparedRegressionData,
 							"unifbest" = preparedUniformBestCQIData,
 							"binom" = preparedBinomialData,
 							"binombest" = preparedBinomialBestCQIData,
-							"validation" = preparedValidationData)
+							"val1" = preparedValidation1Data,
+							"val2" = preparedValidation2Data)
 parsescenario_data <- list("regr" = regressionTestData,
 							"nofram" = noFramingData,
 							"unif" = uniformData,
 							"unifbest" = uniformBestCQIData,
 							"binom" = binomialData,
 							"binombest" = binomialBestCQIData,
-							"validation" = validationData)
+							"val1" = validation1Data,
+							"val2" = validation2Data)
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
 							"nofram" = schedulerNoFramingData,
 							"unif" = schedulerUniformData,
 							"unifbest" = schedulerUniformBestCQIData,
 							"binom" = schedulerBinomialData,
 							"binombest" = schedulerBinomialBestCQIData,
-						 	"validation" = schedulerValidationData)
+						 	"val1" = schedulerValidation1Data,
+							"val2" = schedulerValidation2Data)
 
 
 cat("Plot commands:\n");
@@ -810,8 +818,6 @@ while(1) {
 						paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
 					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
 						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="Validation" & usertraffic==max(antennaValidation$usertraffic),
-						paste(round(max(antennaValidation$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) + 
 					geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
 						paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) 
 
