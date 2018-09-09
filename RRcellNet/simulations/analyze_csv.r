@@ -438,6 +438,24 @@ plotSchedulerFrameFillRBcount <- function(plotdata) {
 	multiplot(resplot)
 }
 
+plotThantennaMax <- function(scenariodatalist) {
+	antennadata <- do.call("rbind", scenariodatalist)
+
+	targetdata <- aggregate(
+		list(anthmean.max=antennadata$antennathroughput.mean,
+			anthmean.confmin=antennadata$antennathroughput.confmin,
+			anthmean.confmax=antennadata$antennathroughput.confmax),
+		by = list(scenario=antennadata$scenario), max)
+
+	resplot <- ggplot(targetdata, aes(x=scenario, y=anthmean.max, color=scenario, fill=scenario)) +
+		geom_bar(stat="identity", width=.5) +
+		geom_errorbar(aes(ymin=anthmean.confmin, ymax=anthmean.confmax), color="black", width=.2, position=position_dodge(.9)) +
+		theme(legend.position="none") +
+		geom_text(aes(label=round(anthmean.max)), position=position_dodge(width=0.9), vjust=-1)
+
+	multiplot(resplot)
+}
+
 printRates <- function(plotdata)
 {
 	rates = sort(unique(plotdata$usertraffic));
@@ -571,7 +589,7 @@ cat("\trates,\n");
 cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
-cat("\tthantenna,\n");
+cat("\tthantenna, thantennamax\n");
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
@@ -829,6 +847,27 @@ while(1) {
 
 				startDevice()
 				multiplot(antenna_graph)
+			}
+		},
+		thantennamax={
+			if(length(params) != 2)
+			{
+				cat("thantennamax usage: thantennamax <group>\n")
+				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations)\n")
+			}
+			else {
+				startDevice()
+
+				if(params[2] == 0)
+					plotThantennaMax(list(antennaValidation1, antennaValidation2, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 1)
+					plotThantennaMax(list(antennaNoFraming, antennaUniform, antennaUniformBestCQI))
+				else if(params[2] == 2)
+					plotThantennaMax(list(antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 3)
+					plotThantennaMax(list(antennaValidation1, antennaValidation2))
+				else
+					cat("invalid group!\n")
 			}
 		},
 		{
