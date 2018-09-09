@@ -448,6 +448,8 @@ switchOutput <- function(mode)
 {
 	if(mode == "window")
 		library(ggplot2)
+	else if(mode == "png")
+		png("plot.png", 4400, 2200, units = "px", res=300)
 	else if(mode == "tikz")
 	{
 		library(tikzDevice)
