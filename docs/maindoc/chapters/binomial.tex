@@ -1,0 +1,15 @@
+\chapter{Simulation: Binomial Scenarios}
+\section{Introduction}
+This scenario models an enviroment where users have a fixed position in the space. There are some users which receive stronger signal from antenna, so they have an higher mean CQI, and others which are far from antenna and then they have smaller mean CQI. The requirements state that the distribution of CQIs must have a binomial distribution. To satisfy these, at each timeslot \(t_{j}\), every \texttt{Mobile Station} \(i\) generates a RV \(X_{i,t_{j}} \sim Bin(n-1,p_{i})\), and then \(CQI_{i,t_{j}} = X + 1\). By using this trick \(CQI_{i,t_{j}} \in \{1,15\}\) and it has a binomial distribution. In order to have different mean we have chose this values for parameters \(p_{i}\).
+\begin{lstlisting}[caption={omnet.ini - p parameters}]
+	CellularNetwork.users[0].cqi_binomial_p = 0.13
+	CellularNetwork.users[1].cqi_binomial_p = 0.22
+	CellularNetwork.users[2].cqi_binomial_p = 0.31
+	CellularNetwork.users[3].cqi_binomial_p = 0.40
+	CellularNetwork.users[4].cqi_binomial_p = 0.49
+	CellularNetwork.users[5].cqi_binomial_p = 0.58
+	CellularNetwork.users[6].cqi_binomial_p = 0.67
+	CellularNetwork.users[7].cqi_binomial_p = 0.76
+	CellularNetwork.users[8].cqi_binomial_p = 0.85
+	CellularNetwork.users[9].cqi_binomial_p = 0.94
+\end{lstlisting}
