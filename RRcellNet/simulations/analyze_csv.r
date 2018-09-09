@@ -438,6 +438,30 @@ plotSchedulerFrameFillRBcount <- function(plotdata) {
 	multiplot(resplot)
 }
 
+plotThantenna <- function(scenariodatalist) {
+	targetdata <- do.call("rbind", scenariodatalist)
+
+	x_max <- max(targetdata$usertraffic)
+	y_max <- round(max(targetdata$antennathroughput.mean)/(1), digits=0)
+
+	resplot <- ggplot(targetdata, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
+		geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
+		geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1))
+		#+
+		#geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
+		#	paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
+		#	paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
+		#	paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
+		#	paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
+		#	paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5)
+
+	multiplot(resplot)
+}
+
 plotThantennaMax <- function(scenariodatalist) {
 	antennadata <- do.call("rbind", scenariodatalist)
 
@@ -825,28 +849,24 @@ while(1) {
 			}
 		},
 		thantenna={
-			if(length(params) != 1)
-				cat("thantenna usage: thantenna (no parameters)\n")
+			if(length(params) != 2)
+			{
+				cat("thantenna usage: thantenna <group>\n")
+				cat("\tgroup can be: 0 (noframing), 1 (uniforms), 2 (binomials), 3 (validations)\n")
+			}
 			else {
-				x_max <- max(antennaAll$usertraffic)
-				y_max <- round(max(antennaAll$antennathroughput.mean)/(1), digits=0)
-
-				antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
-					geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
-					geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
-					geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
-						paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
-						paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
-						paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
-						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
-						paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) 
-
 				startDevice()
-				multiplot(antenna_graph)
+
+				if(params[2] == 0)
+					plotThantenna(list(antennaNoFraming))
+				else if(params[2] == 1)
+					plotThantenna(list(antennaUniform, antennaUniformBestCQI))
+				else if(params[2] == 2)
+					plotThantenna(list(antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 3)
+					plotThantenna(list(antennaValidation1, antennaValidation2))
+				else
+					cat("invalid group!\n")
 			}
 		},
 		thantennamax={
