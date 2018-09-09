@@ -13,3 +13,4 @@ This scenario models an enviroment where users have a fixed position in the spac
 	CellularNetwork.users[8].cqi_binomial_p = 0.85
 	CellularNetwork.users[9].cqi_binomial_p = 0.94
 \end{lstlisting}
+As in the previous scenario we will analyze the performance about throughput and response time by using both scheduler. Before doing simulation we can do some conjectures. Note that in this scenario mean CQI are sensibly different so we expect that \(user[9]\), that has highest probability to generate high CQI, and it will have highest throughput. Morover we can suppose that it will take advantage of Best CQI policy annd will increase its throughput despite other users.
