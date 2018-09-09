@@ -449,7 +449,7 @@ switchOutput <- function(mode)
 	if(mode == "window")
 		library(ggplot2)
 	else if(mode == "png")
-		png("plot.png", 4400, 2200, units = "px", res=300)
+	{}
 	else if(mode == "tikz")
 	{
 		library(tikzDevice)
@@ -470,6 +470,8 @@ startDevice <- function()
 		X11(width=14, height=7)
 	else if(outputmode == "tikz")
 		tikz(file = "plot_test.tex", sanitize=TRUE, width = 5, height = 5)
+	else if(outputmode == "png")
+		png("plot.png", 4400, 2200, units = "px", res=300)
 	else if(outputmode == "plotly")
 		cat("plotly is not yet supported.\n")
 }
