@@ -219,13 +219,17 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
+	x_max <- max(plotdata$usertraffic)
+	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
-	geom_line() +
+	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
+	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() +
+	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdouble_singlelegend(plot_th, plot_rt);
@@ -289,7 +293,7 @@ plotModuleRBComparision <- function(plotdata1, moduleindex1, plotdata2, modulein
 	#print(plotdata)
 
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=rbcount.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
-		geom_line() +
+		geom_line() + scale_y_continuous(breaks=seq(0,25,1)) +
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1))
 
 	multiplot(plot_th)
