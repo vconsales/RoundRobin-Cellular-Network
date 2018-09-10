@@ -4,7 +4,7 @@ library(gridExtra)
 library(grid)
 library(tikzDevice)
 
-basedir <- ""
+basedir <- "./csv_results/"
 
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
