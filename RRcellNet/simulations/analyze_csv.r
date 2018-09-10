@@ -69,6 +69,11 @@ prepareMeasures <- function(csvfile) {
 	colnames(AllRbCounts)[3] <- "rbcount"
 	AllRbCounts$rbcount <- as.numeric(as.character(AllRbCounts$rbcount))
 
+	AllPacketCounts <- csvData[csvData$type=="scalar" & csvData$name=="packetCount:mean", c("run", "module", "value")]
+	colnames(AllPacketCounts)[3] <- "packetcount"
+	AllPacketCounts$packetcount <- as.numeric(as.character(AllPacketCounts$packetcount))
+	AllPacketCounts$module <- gsub("\\CellularNetwork.antenna.queue", "CellularNetwork.users", AllPacketCounts$module)
+
 	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
 	colnames(AllRepetitions)[2] <- "repetition"
 	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
@@ -84,7 +89,8 @@ prepareMeasures <- function(csvfile) {
 	temp_merge2 <- merge(temp_merge1, AllConfigNames)
 	temp_merge3 <- merge(temp_merge2, AllThroughputBits)
 	temp_merge4 <- merge(temp_merge3, AllRbCounts)
-	merged_result <- merge(temp_merge4, AllResponseTimes)
+	temp_merge5 <- merge(temp_merge4, AllPacketCounts)
+	merged_result <- merge(temp_merge5, AllResponseTimes)
 
 	return(merged_result)
 }
@@ -166,10 +172,23 @@ aggregateClientMeasures <- function(measures) {
 	# trasform confidence(...) vectors into columns
 	rbcount_agg_clients <- do.call(data.frame, rbcount_agg_clients)
 
+	## ResourceBlock count (on usertraffic variation)
+
+	# group by lambda and client. Compute mean and stdev for packetcount values
+	packetcount_agg_clients <- aggregate(list(values=measures$packetcount),
+		by = list(module=measures$module, scenario=measures$scenario, usertraffic=measures$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(packetcount_agg_clients)[4] <- "packetcount"
+
+	# trasform confidence(...) vectors into columns
+	packetcount_agg_clients <- do.call(data.frame, packetcount_agg_clients)
+
+
 
 	# merging throughput, responsetime and rbcount data frames
-	partial_merge <- merge(throughput_agg_clients, responsetime_agg_clients)
-	allStats <- merge(partial_merge, rbcount_agg_clients)
+	partial_merge1 <- merge(throughput_agg_clients, responsetime_agg_clients)
+	partial_merge2 <- merge(partial_merge1, rbcount_agg_clients)
+	allStats <- merge(partial_merge2, packetcount_agg_clients)
 
 	# returning the merged dataframe
 	return(allStats)
@@ -259,6 +278,15 @@ plotAllModulesRBcountsByTrafficComparision <- function(plotdata1, plotdata2, cli
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1), position=position_dodge(.9))
 
 	multiplot(plot_rb);
+}
+
+plotAllModulesPacketCounts <- function(plotdata) {
+	plot_packetcount <- ggplot(plotdata, aes(x=usertraffic, y=packetcount.mean, colour=module, group=module)) +
+	geom_line() +
+	geom_errorbar(aes(ymin=packetcount.confmin, ymax=packetcount.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	multiplot(plot_packetcount);
 }
 
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
@@ -615,7 +643,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
+cat("\tall, allrb, allrbbars, allpacketcount, lorallth, lorallrt, lorallrb\n");
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
@@ -693,6 +721,20 @@ while(1) {
 				else {
 					startDevice()
 					plotAllModulesRBcountsByTrafficComparision(data1, data2, as.numeric(params[4]))
+				}
+			}
+		},
+		allpacketcount={
+			if(length(params) != 2)
+				cat("allpacketcount usage: allpacketcount <scenario1>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllModulesPacketCounts(data1)
 				}
 			}
 		},
