@@ -289,6 +289,21 @@ plotAllModulesPacketCounts <- function(plotdata) {
 	multiplot(plot_packetcount);
 }
 
+plotAllLittle <- function(plotdata) {
+	computeddata <- plotdata
+	computeddata$littleresponsetime <- (plotdata$packetcount.mean/plotdata$usertraffic)/1000
+
+	plot_rs <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	geom_line() + coord_cartesian(ylim = c(0, 0.02)) +
+	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	plot_little <- ggplot(computeddata, aes(x=usertraffic, y=littleresponsetime, colour=module, group=module)) +
+	geom_line() + coord_cartesian(ylim = c(0, 0.02))
+
+	plotdouble_singlelegend(plot_rs, plot_little);
+}
+
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
 	targetmodule1 = plotdata1[plotdata1$module == sprintf("CellularNetwork.users[%d]",moduleindex1),]
 	targetmodule2 = plotdata2[plotdata2$module == sprintf("CellularNetwork.users[%d]",moduleindex2),]
@@ -643,7 +658,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allrb, allrbbars, allpacketcount, lorallth, lorallrt, lorallrb\n");
+cat("\tall, allrb, allrbbars, allpacketcount, alllittle, lorallth, lorallrt, lorallrb\n");
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
@@ -726,7 +741,7 @@ while(1) {
 		},
 		allpacketcount={
 			if(length(params) != 2)
-				cat("allpacketcount usage: allpacketcount <scenario1>\n")
+				cat("allpacketcount usage: allpacketcount <scenario>\n")
 			else {
 				data1=parsescenario_data[[ params[2] ]]
 
@@ -735,6 +750,20 @@ while(1) {
 				else {
 					startDevice()
 					plotAllModulesPacketCounts(data1)
+				}
+			}
+		},
+		alllittle={
+			if(length(params) != 2)
+				cat("alllittle usage: alllittle <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllLittle(data1)
 				}
 			}
 		},
