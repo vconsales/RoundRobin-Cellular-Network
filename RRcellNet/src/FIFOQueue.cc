@@ -22,7 +22,14 @@ void FIFOQueue::initialize()
    inData_p = gate("inData_p");
    outData_p = gate("outData_p");
 
+   // self message is used for packetCount signaling
+   SELF_MESSAGE_DELAY = par("packetCountBucket");
+   self_message = new cMessage("self_message_FIFO");
+   packetCount_s = registerSignal("packetCount");
+
    EV << getFullPath() << endl;
+   EV << "delay at " << SELF_MESSAGE_DELAY << endl;
+   scheduleAt(simTime() + SELF_MESSAGE_DELAY, self_message);
 }
 
 void FIFOQueue::handleMessage(cMessage *msg)
@@ -31,18 +38,12 @@ void FIFOQueue::handleMessage(cMessage *msg)
     {
       //  EV << "packet queued" << endl;
         queue.insert((cPacket*)msg);
-    } /*else if ( msg->getArrivalGate() == reqData_p ){
-        if( !queue.isEmpty() ){
-            cPacket *pkt = queue.front();
-            send(pkt,outData_p);
-        } else {
-            cMessage *empty = new cMessage("empty");
-            send(empty,outData_p);
-        }
-    } else if( msg->getArrivalGate() == ackSched_p) {
-        if( !queue.isEmpty() )
-            queue.pop();
-    }*/
+    } else if( msg->isSelfMessage()) {
+        //signal for E[N]
+        EV << "emitting packetCount" << endl;
+        emit(packetCount_s, queue.getLength());
+        scheduleAt(simTime() + SELF_MESSAGE_DELAY, self_message);
+    }
 }
 
 cPacket* FIFOQueue::getPacket()

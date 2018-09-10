@@ -19,8 +19,14 @@ package rrcellnet;
 // TODO auto-generated module
 //
 simple FIFOQueue
-{
-   	gates:
-   	    input inData_p;
+{  	    
+   	parameters:
+    	// mean response time (vector type, mean)
+		double packetCountBucket @unit(ms) = 0.1ms;
+		@signal[packetCount](type=int);
+		@statistic[packetCount](source "packetCount";record=vector,mean;);
+
+	gates:
+		input inData_p;
    	    output outData_p;
 }
