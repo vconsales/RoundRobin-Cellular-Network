@@ -4,6 +4,8 @@ library(gridExtra)
 library(grid)
 library(tikzDevice)
 
+basedir <- "./csv_results/"
+
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 	library(grid)
@@ -217,13 +219,17 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
+	x_max <- max(plotdata$usertraffic)
+	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
-	geom_line() +
+	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
+	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() +
+	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdouble_singlelegend(plot_th, plot_rt);
@@ -287,7 +293,7 @@ plotModuleRBComparision <- function(plotdata1, moduleindex1, plotdata2, modulein
 	#print(plotdata)
 
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=rbcount.mean, colour=interaction(module, scenario), group=interaction(module, scenario))) +
-		geom_line() +
+		geom_line() + scale_y_continuous(breaks=seq(0,25,1)) +
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1))
 
 	multiplot(plot_th)
@@ -436,6 +442,48 @@ plotSchedulerFrameFillRBcount <- function(plotdata) {
 	multiplot(resplot)
 }
 
+plotThantenna <- function(scenariodatalist) {
+	targetdata <- do.call("rbind", scenariodatalist)
+
+	x_max <- max(targetdata$usertraffic)
+	y_max <- round(max(targetdata$antennathroughput.mean)/(1), digits=0)
+
+	resplot <- ggplot(targetdata, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
+		geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
+		geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1))
+		#+
+		#geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
+		#	paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
+		#	paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
+		#	paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
+		#	paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
+		#geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
+		#	paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5)
+
+	multiplot(resplot)
+}
+
+plotThantennaMax <- function(scenariodatalist) {
+	antennadata <- do.call("rbind", scenariodatalist)
+
+	targetdata <- aggregate(
+		list(anthmean.max=antennadata$antennathroughput.mean,
+			anthmean.confmin=antennadata$antennathroughput.confmin,
+			anthmean.confmax=antennadata$antennathroughput.confmax),
+		by = list(scenario=antennadata$scenario), max)
+
+	resplot <- ggplot(targetdata, aes(x=scenario, y=anthmean.max, color=scenario, fill=scenario)) +
+		geom_bar(stat="identity", width=.5) +
+		geom_errorbar(aes(ymin=anthmean.confmin, ymax=anthmean.confmax), color="black", width=.2, position=position_dodge(.9)) +
+		theme(legend.position="none") +
+		geom_text(aes(label=round(anthmean.max)), position=position_dodge(width=0.9), vjust=-1)
+
+	multiplot(resplot)
+}
+
 printRates <- function(plotdata)
 {
 	rates = sort(unique(plotdata$usertraffic));
@@ -448,6 +496,8 @@ switchOutput <- function(mode)
 {
 	if(mode == "window")
 		library(ggplot2)
+	else if(mode == "png")
+	{}
 	else if(mode == "tikz")
 	{
 		library(tikzDevice)
@@ -468,60 +518,71 @@ startDevice <- function()
 		X11(width=14, height=7)
 	else if(outputmode == "tikz")
 		tikz(file = "plot_test.tex", sanitize=TRUE, width = 5, height = 5)
+	else if(outputmode == "png")
+		png("plot.png", 4400, 2200, units = "px", res=300)
 	else if(outputmode == "plotly")
 		cat("plotly is not yet supported.\n")
+}
+
+getPath <- function(filename) {
+	return(paste(basedir,filename,sep=""))
 }
 
 # disable scientific notation
 options(scipen = 999)
 
 ## REGRESSION TEST
-preparedRegressionData <- prepareMeasures("data_regr.csv")
+preparedRegressionData <- prepareMeasures(getPath("data_regr.csv"))
 regressionTestData <- aggregateClientMeasures(preparedRegressionData)
 
 ## USERS STATISTICS
 
 # load all experiments data from CSVs
-preparedNoFramingData <- prepareMeasures("data_noframing.csv")
-preparedUniformData <- prepareMeasures("data_uni.csv")
-preparedUniformBestCQIData <- prepareMeasures("data_uni_bestcqi.csv")
-preparedBinomialData <- prepareMeasures("data_binom.csv")
-preparedBinomialBestCQIData <- prepareMeasures("data_binom_bestcqi.csv")
-preparedValidationData <- prepareMeasures("data_validation.csv")
+preparedValidation1Data <- prepareMeasures(getPath("data_validation_1.csv"))
+preparedValidation2Data <- prepareMeasures(getPath("data_validation_2.csv"))
+preparedNoFramingData <- prepareMeasures(getPath("data_noframing.csv"))
+preparedUniformData <- prepareMeasures(getPath("data_uni.csv"))
+preparedUniformBestCQIData <- prepareMeasures(getPath("data_uni_bestcqi.csv"))
+preparedBinomialData <- prepareMeasures(getPath("data_binom.csv"))
+preparedBinomialBestCQIData <- prepareMeasures(getPath("data_binom_bestcqi.csv"))
 
 # compute confidence intervals and means for each user (and for each scenario)
+validation1Data <- aggregateClientMeasures(preparedValidation1Data)
+validation2Data <- aggregateClientMeasures(preparedValidation2Data)
 noFramingData <- aggregateClientMeasures(preparedNoFramingData)
 uniformData <- aggregateClientMeasures(preparedUniformData)
 uniformBestCQIData <- aggregateClientMeasures(preparedUniformBestCQIData)
 binomialData <- aggregateClientMeasures(preparedBinomialData)
 binomialBestCQIData <- aggregateClientMeasures(preparedBinomialBestCQIData)
-validationData <- aggregateClientMeasures(preparedValidationData)
 
 ## SCHEDULER STATISTICS
-schedulerPreparedNoFramingData <- prepareSchedulerMeasures("data_noframing.csv")
-schedulerPreparedUniformData <- prepareSchedulerMeasures("data_uni.csv")
-schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures("data_uni_bestcqi.csv")
-schedulerPreparedBinomialData <- prepareSchedulerMeasures("data_binom.csv")
-schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures("data_binom_bestcqi.csv")
-schedulerPreparedValidationData <- prepareSchedulerMeasures("data_validation.csv")
+schedulerPreparedValidation1Data <- prepareSchedulerMeasures(getPath("data_validation_1.csv"))
+schedulerPreparedValidation2Data <- prepareSchedulerMeasures(getPath("data_validation_2.csv"))
+schedulerPreparedNoFramingData <- prepareSchedulerMeasures(getPath("data_noframing.csv"))
+schedulerPreparedUniformData <- prepareSchedulerMeasures(getPath("data_uni.csv"))
+schedulerPreparedUniformBestCQIData <- prepareSchedulerMeasures(getPath("data_uni_bestcqi.csv"))
+schedulerPreparedBinomialData <- prepareSchedulerMeasures(getPath("data_binom.csv"))
+schedulerPreparedBinomialBestCQIData <- prepareSchedulerMeasures(getPath("data_binom_bestcqi.csv"))
 
+schedulerValidation1Data <- aggregateSchedulerMeasures(schedulerPreparedValidation1Data)
+schedulerValidation2Data <- aggregateSchedulerMeasures(schedulerPreparedValidation2Data)
 schedulerNoFramingData <- aggregateSchedulerMeasures(schedulerPreparedNoFramingData)
 schedulerUniformData <- aggregateSchedulerMeasures(schedulerPreparedUniformData)
 schedulerUniformBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedUniformBestCQIData)
 schedulerBinomialData <- aggregateSchedulerMeasures(schedulerPreparedBinomialData)
 schedulerBinomialBestCQIData <- aggregateSchedulerMeasures(schedulerPreparedBinomialBestCQIData)
-schedulerValidationData <- aggregateSchedulerMeasures(schedulerPreparedValidationData)
 
 ## ANTENNA STATISTICS
 
+antennaValidation1 <- aggregateAntennaMeasures(preparedValidation1Data)
+antennaValidation2 <- aggregateAntennaMeasures(preparedValidation2Data)
 antennaNoFraming <- aggregateAntennaMeasures(preparedNoFramingData)
 antennaUniform <- aggregateAntennaMeasures(preparedUniformData)
 antennaUniformBestCQI <- aggregateAntennaMeasures(preparedUniformBestCQIData)
 antennaBinomial <- aggregateAntennaMeasures(preparedBinomialData)
 antennaBinomialBestCQI <- aggregateAntennaMeasures(preparedBinomialBestCQIData)
-antennaValidation <- aggregateAntennaMeasures(preparedValidationData)
 
-antennaAll <- rbind(antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI, antennaValidation)
+antennaAll <- rbind(antennaValidation1, antennaValidation2, antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI)
 
 
 # scenario string parsing
@@ -531,21 +592,24 @@ parsescenario_prep <- list("regr" = preparedRegressionData,
 							"unifbest" = preparedUniformBestCQIData,
 							"binom" = preparedBinomialData,
 							"binombest" = preparedBinomialBestCQIData,
-							"validation" = preparedValidationData)
+							"val1" = preparedValidation1Data,
+							"val2" = preparedValidation2Data)
 parsescenario_data <- list("regr" = regressionTestData,
 							"nofram" = noFramingData,
 							"unif" = uniformData,
 							"unifbest" = uniformBestCQIData,
 							"binom" = binomialData,
 							"binombest" = binomialBestCQIData,
-							"validation" = validationData)
+							"val1" = validation1Data,
+							"val2" = validation2Data)
 parsescenario_scheddata <- list("regr" = preparedRegressionData,
 							"nofram" = schedulerNoFramingData,
 							"unif" = schedulerUniformData,
 							"unifbest" = schedulerUniformBestCQIData,
 							"binom" = schedulerBinomialData,
 							"binombest" = schedulerBinomialBestCQIData,
-						 	"validation" = schedulerValidationData)
+						 	"val1" = schedulerValidation1Data,
+							"val2" = schedulerValidation2Data)
 
 
 cat("Plot commands:\n");
@@ -553,7 +617,7 @@ cat("\trates,\n");
 cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
-cat("\tthantenna,\n");
+cat("\tthantenna, thantennamax\n");
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
@@ -789,30 +853,45 @@ while(1) {
 			}
 		},
 		thantenna={
-			if(length(params) != 1)
-				cat("thantenna usage: thantenna (no parameters)\n")
+			if(length(params) != 2)
+			{
+				cat("thantenna usage: thantenna <group>\n")
+				cat("\tgroup can be: 0 (noframing), 1 (uniforms), 2 (binomials), 3 (validations)\n")
+			}
 			else {
-				x_max <- max(antennaAll$usertraffic)
-				y_max <- round(max(antennaAll$antennathroughput.mean)/(1), digits=0)
-
-				antenna_graph <- ggplot(antennaAll, aes(x=usertraffic, y=antennathroughput.mean, colour=scenario, group=scenario)) +
-					geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,1)) +
-					geom_errorbar(aes(ymin=antennathroughput.confmin, ymax=antennathroughput.confmax, width=.1)) +
-					geom_text(aes(label=ifelse(scenario=="UniformCQI" & antennathroughput.mean==max(antennaUniform$antennathroughput.mean),
-						paste(round(max(antennaUniform$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="UniformCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaUniformBestCQI$antennathroughput.mean),
-						paste(round(max(antennaUniformBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="BinomialCQI" & antennathroughput.mean==max(antennaBinomial$antennathroughput.mean),
-						paste(round(max(antennaBinomial$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="BinomialCQI_bestCQIScheduler" & antennathroughput.mean==max(antennaBinomialBestCQI$antennathroughput.mean),
-						paste(round(max(antennaBinomialBestCQI$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) +
-					geom_text(aes(label=ifelse(scenario=="Validation" & usertraffic==max(antennaValidation$usertraffic),
-						paste(round(max(antennaValidation$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) + 
-					geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
-						paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5) 
-
 				startDevice()
-				multiplot(antenna_graph)
+
+				if(params[2] == 0)
+					plotThantenna(list(antennaNoFraming))
+				else if(params[2] == 1)
+					plotThantenna(list(antennaUniform, antennaUniformBestCQI))
+				else if(params[2] == 2)
+					plotThantenna(list(antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 3)
+					plotThantenna(list(antennaValidation1, antennaValidation2))
+				else
+					cat("invalid group!\n")
+			}
+		},
+		thantennamax={
+			if(length(params) != 2)
+			{
+				cat("thantennamax usage: thantennamax <group>\n")
+				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations)\n")
+			}
+			else {
+				startDevice()
+
+				if(params[2] == 0)
+					plotThantennaMax(list(antennaValidation1, antennaValidation2, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 1)
+					plotThantennaMax(list(antennaNoFraming, antennaUniform, antennaUniformBestCQI))
+				else if(params[2] == 2)
+					plotThantennaMax(list(antennaBinomial, antennaBinomialBestCQI))
+				else if(params[2] == 3)
+					plotThantennaMax(list(antennaValidation1, antennaValidation2))
+				else
+					cat("invalid group!\n")
 			}
 		},
 		{
