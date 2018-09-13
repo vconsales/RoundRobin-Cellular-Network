@@ -5,6 +5,7 @@ library(grid)
 library(tikzDevice)
 
 basedir <- "./csv_results/"
+THROUGHPUT_MARGIN <- 40000
 
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -244,6 +245,8 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
+	nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
+
 	x_max <- max(plotdata$usertraffic)
 	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
 
@@ -252,8 +255,8 @@ plotAllModulesStatistics <- function(plotdata) {
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
-	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
-	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	y_max <- round(max(nonsaturared_data$responsetime.mean)/(1), digits=0)
+	plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
@@ -311,7 +314,7 @@ plotAllLittle <- function(plotdata) {
 }
 
 plotLittleRegression <- function(plotdata, clientindex) {
-	filtereddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput) < 30000 & plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+	filtereddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput) < THROUGHPUT_MARGIN & plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
 	#print(filtereddata)
 
 	m <- lm(responsetime ~ packetcount/usertraffic, filtereddata)
