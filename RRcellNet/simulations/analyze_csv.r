@@ -92,6 +92,9 @@ prepareMeasures <- function(csvfile) {
 	temp_merge5 <- merge(temp_merge4, AllPacketCounts)
 	merged_result <- merge(temp_merge5, AllResponseTimes)
 
+	# add inputthroughput universal column, depends on usertraffic
+	merged_result$inputthroughput = (312*10^3)*merged_result$usertraffic
+
 	return(merged_result)
 }
 
@@ -302,6 +305,26 @@ plotAllLittle <- function(plotdata) {
 	geom_line() + coord_cartesian(ylim = c(0, 0.02))
 
 	plotdouble_singlelegend(plot_rs, plot_little);
+}
+
+plotLittleRegression <- function(plotdata, clientindex) {
+	filtereddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput) < 30000 & plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+	#print(filtereddata)
+
+	m <- lm(responsetime ~ packetcount/usertraffic, filtereddata)
+
+	eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,
+         list(a = format(coef(m)[1], digits = 2),
+              b = format(coef(m)[2], digits = 2),
+             r2 = format(summary(m)$r.squared, digits = 3)))
+
+	print(as.character(as.expression(eq)))
+
+	plot_lr <- ggplot(filtereddata, aes(x=responsetime, y=packetcount/usertraffic, colour=module, group=module)) +
+	geom_smooth(method="lm") + geom_point() +
+	geom_text(aes(x = 10, y = 25, label = as.character(as.expression(eq))), parse = TRUE)
+
+	multiplot(plot_lr)
 }
 
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
@@ -659,6 +682,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 cat("Plot commands:\n");
 cat("\trates,\n");
 cat("\tall, allrb, allrbbars, allpacketcount, alllittle, lorallth, lorallrt, lorallrb\n");
+cat("\tlittleregr \n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
@@ -764,6 +788,20 @@ while(1) {
 				else {
 					startDevice()
 					plotAllLittle(data1)
+				}
+			}
+		},
+		littleregr={
+			if(length(params) != 3)
+				cat("littleregr usage: littleregr <scenario> <clientindex>\n")
+			else {
+				data1=parsescenario_prep[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotLittleRegression(data1, as.numeric(params[3]))
 				}
 			}
 		},
