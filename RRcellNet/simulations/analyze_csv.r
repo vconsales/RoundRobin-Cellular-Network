@@ -299,8 +299,8 @@ plotAllModulesPacketCounts <- function(plotdata) {
 }
 
 plotAllLittle <- function(plotdata) {
-	computeddata <- plotdata
-	computeddata$littleresponsetime <- (plotdata$packetcount.mean/plotdata$usertraffic)/1000
+	computeddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN, ]
+	computeddata$littleresponsetime <- (computeddata$packetcount.mean/computeddata$usertraffic)/1000
 
 	plot_rs <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + coord_cartesian(ylim = c(0, 0.02)) +
