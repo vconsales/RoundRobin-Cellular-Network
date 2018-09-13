@@ -193,6 +193,9 @@ aggregateClientMeasures <- function(measures) {
 	partial_merge2 <- merge(partial_merge1, rbcount_agg_clients)
 	allStats <- merge(partial_merge2, packetcount_agg_clients)
 
+	# add inputthroughput universal column, depends on usertraffic
+	allStats$inputthroughput = (312*10^3)*allStats$usertraffic
+
 	# returning the merged dataframe
 	return(allStats)
 }
@@ -325,6 +328,17 @@ plotLittleRegression <- function(plotdata, clientindex) {
 	geom_text(aes(x = 10, y = 25, label = as.character(as.expression(eq))), parse = TRUE)
 
 	multiplot(plot_lr)
+}
+
+plotThroughputSaturationLines <- function(plotdata, clientindex) {
+	filtereddata <- plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+
+	plot_sl <- ggplot(filtereddata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) + geom_line() +
+	geom_line(aes(x=usertraffic, y=inputthroughput, colour=module, group=module)) +
+	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	multiplot(plot_sl);
 }
 
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
@@ -682,7 +696,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 cat("Plot commands:\n");
 cat("\trates,\n");
 cat("\tall, allrb, allrbbars, allpacketcount, alllittle, lorallth, lorallrt, lorallrb\n");
-cat("\tlittleregr \n")
+cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
@@ -802,6 +816,20 @@ while(1) {
 				else {
 					startDevice()
 					plotLittleRegression(data1, as.numeric(params[3]))
+				}
+			}
+		},
+		thsat={
+			if(length(params) != 3)
+				cat("thsat usage: thsat <scenario> <clientindex>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotThroughputSaturationLines(data1, as.numeric(params[3]))
 				}
 			}
 		},
