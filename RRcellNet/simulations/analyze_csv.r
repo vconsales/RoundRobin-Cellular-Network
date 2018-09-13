@@ -317,16 +317,17 @@ plotLittleRegression <- function(plotdata, clientindex) {
 	filtereddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput) < THROUGHPUT_MARGIN & plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
 	#print(filtereddata)
 
-	m <- lm(responsetime ~ packetcount/usertraffic, filtereddata)
+	m <- lm(responsetime ~ I((packetcount/usertraffic)/1000), filtereddata)
 
 	eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,
          list(a = format(coef(m)[1], digits = 2),
               b = format(coef(m)[2], digits = 2),
              r2 = format(summary(m)$r.squared, digits = 3)))
 
-	plot_lr <- ggplot(filtereddata, aes(x=responsetime, y=packetcount/usertraffic, colour=module, group=module)) +
+	plot_lr <- ggplot(filtereddata, aes(x=responsetime, y=((packetcount/usertraffic)/1000), colour=module, group=module)) +
 	geom_smooth(method="lm") + geom_point() +
-	geom_text(aes(x = 10, y = 25, label = as.character(as.expression(eq))), parse = TRUE)
+	annotate(geom = 'text', label = as.character(as.expression(eq)), x = -Inf, y = Inf, hjust = 0, vjust = 1, parse = TRUE)
+	#geom_text(aes(x = 0, y = 0, label = as.character(as.expression(eq))), parse = TRUE)
 
 	multiplot(plot_lr)
 }
