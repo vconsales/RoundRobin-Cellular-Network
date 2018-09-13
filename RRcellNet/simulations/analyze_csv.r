@@ -302,7 +302,7 @@ plotAllLittle <- function(plotdata) {
 	computeddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN, ]
 	computeddata$littleresponsetime <- (computeddata$packetcount.mean/computeddata$usertraffic)/1000
 
-	plot_rs <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	plot_rs <- ggplot(computeddata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1)) +
 	theme(legend.position="bottom")
@@ -323,8 +323,6 @@ plotLittleRegression <- function(plotdata, clientindex) {
          list(a = format(coef(m)[1], digits = 2),
               b = format(coef(m)[2], digits = 2),
              r2 = format(summary(m)$r.squared, digits = 3)))
-
-	print(as.character(as.expression(eq)))
 
 	plot_lr <- ggplot(filtereddata, aes(x=responsetime, y=packetcount/usertraffic, colour=module, group=module)) +
 	geom_smooth(method="lm") + geom_point() +
