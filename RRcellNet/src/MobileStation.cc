@@ -120,7 +120,8 @@ void MobileStation::handleFrameChunk(cMessage *msg) {
     for(cPacket *pkt = fchunk->extractPacket(); pkt!=nullptr; pkt = fchunk->extractPacket())
     {
         UserPacket *user_pkt = check_and_cast<UserPacket*>(pkt);
-        emit(responseTime_s, end_time - user_pkt->getStart_time());
+        if(simTime() > getSimulation()->getWarmupPeriod())
+            emit(responseTime_s, end_time - user_pkt->getStart_time());
 
         EV << "packet received bytes=" << pkt->getByteLength()
             << " bits=" << pkt->getBitLength()

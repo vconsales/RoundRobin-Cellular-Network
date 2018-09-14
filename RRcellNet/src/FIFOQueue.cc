@@ -41,7 +41,8 @@ void FIFOQueue::handleMessage(cMessage *msg)
     } else if( msg->isSelfMessage()) {
         //signal for E[N]
         EV << "emitting packetCount" << endl;
-        emit(packetCount_s, queue.getLength());
+        if(simTime() > getSimulation()->getWarmupPeriod())
+            emit(packetCount_s, queue.getLength());
         scheduleAt(simTime() + SELF_MESSAGE_DELAY, self_message);
     }
 }
