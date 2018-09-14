@@ -105,27 +105,12 @@ class MyRNG {
 };
 
 void Scheduler::scheduleUsers() {
-    std::function<bool(rrUserStruct,rrUserStruct)> lambda_fairScheduler =
-            [this] (rrUserStruct first, rrUserStruct second) {
-                // currentUser must be always on top
-                if(first.userId == this->currentUser)
-                    return true;
-                else if(second.userId == this->currentUser)
-                    return false;
-
-                // we want to order users from currentUser to the end and then WRAP
-                // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
-                if(first.userId > this->currentUser && second.userId < this->currentUser)
-                    return true;
-                else if(first.userId < this->currentUser && second.userId > this->currentUser)
-                    return false;
-
-                // else compare IDs
-                return first.userId < second.userId;
-            };
+    std::vector<size_t> rand_order(nUsers);
+    for(int i=0; i<nUsers; i++)
+        rand_order[i] = MyRNG(*this)();
 
     std::function<bool(rrUserStruct,rrUserStruct)> lambda_bestCQIScheduler =
-            [this,lambda_fairScheduler] (rrUserStruct first, rrUserStruct second) {
+            [this,rand_order] (rrUserStruct first, rrUserStruct second) {
                 // currentUser must be always on top
                 if(first.userId == this->currentUser)
                     return true;
@@ -137,10 +122,12 @@ void Scheduler::scheduleUsers() {
                     return true;
                 else if( first.receivedCQI < second.receivedCQI)
                     return false;
-
-                // what if CQIs are equal?
-                // just use the fair scheduling (:
-                return lambda_fairScheduler(first, second);
+                else{
+                    if(rand_order[first.userId] > rand_order[second.userId] )
+                        return true;
+                    else
+                        return false;
+                }
             };
 
 
