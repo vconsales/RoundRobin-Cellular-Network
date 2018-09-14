@@ -29,9 +29,9 @@ class Scheduler : public cSimpleModule
 {
 private:
     unsigned int nUsers;
+    unsigned int nrec_CQI;
     int nFrameSlots;
     simtime_t timeFramePeriod;
-    cMessage *beepSched;
     unsigned int currentUser;
 
     bool bestCQIScheduler;

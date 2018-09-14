@@ -34,7 +34,6 @@ void Scheduler::initialize()
 
     // we start from the first user, so id 0 user
     currentUser = 0;
-    beepSched = new cMessage("beepScheduler");
 
     char buf[100];
     for(unsigned int i=0; i<nUsers; i++){
@@ -50,8 +49,7 @@ void Scheduler::initialize()
     // signals for statistics
     framefilledRbCount_s = registerSignal("framefilledRbCount");
 
-    //TODO: RISOLVERE PROBLEMA DELLA RICEZIONE DI TUTTI I CQI PRIMA DI COMPORRE IL FRAME
-    scheduleAt(simTime()+0.0001f, beepSched);
+    nrec_CQI = 0;
 }
 
 int integerRoundDivision(const int n, const int d)
@@ -61,19 +59,16 @@ int integerRoundDivision(const int n, const int d)
 
 void Scheduler::handleMessage(cMessage *msg)
 {
-    if( msg->isSelfMessage() ){
-        sendRBs();
-
-        // see you at the next timeslot...
-        scheduleAt(simTime()+(timeFramePeriod/1000), beepSched);
-
-    } else if( strcmp(msg->getName(),"cqiMSG") == 0 ){
+   if( strcmp(msg->getName(),"cqiMSG") == 0 ){
         updateCQIs(msg);
+       if( ++nrec_CQI == nUsers ){
+           sendRBs();
+           nrec_CQI = 0;
+       }
     }
 }
 
 Scheduler::~Scheduler(){
-  this->cancelAndDelete(beepSched);
 }
 
 int Scheduler::nextUser(){
