@@ -94,6 +94,21 @@ void Scheduler::updateCQIs(cMessage *msg)
     delete msg;
 }
 
+class MyRNG {
+    private:
+        static const short RNG_CQISHUFFLE_INDEX = 0;
+        cSimpleModule& c;
+    public:
+        typedef size_t result_type;
+        MyRNG(cSimpleModule& c) : c(c) {}
+        static size_t min() { return 0; }
+        static size_t max() { return 100; }
+        size_t operator() () {
+            // generate a random number in the range [0, 100]
+            return c.intuniform(1,100, RNG_CQISHUFFLE_INDEX);
+        }
+};
+
 void Scheduler::scheduleUsers() {
     std::function<bool(rrUserStruct,rrUserStruct)> lambda_fairScheduler =
             [this] (rrUserStruct first, rrUserStruct second) {
@@ -142,7 +157,17 @@ void Scheduler::scheduleUsers() {
     }
     else    // otherwise we will user a fair scheduling
     {
-        std::sort(usersVector.begin(), usersVector.end(), lambda_fairScheduler);
+        //std::sort(usersVector.begin(), usersVector.end(), lambda_fairScheduler);
+
+        // Move current User to the top of vector
+        for (auto it = usersVector.begin(), lim = usersVector.end(); it != lim; ++it)
+            if (it->userId == this->currentUser) {
+                std::rotate(usersVector.begin(), it, it + 1);
+                break;
+            }
+
+        // Randomly shuffle remaining elements
+        std::shuffle(usersVector.begin()+1, usersVector.end(), MyRNG(*this));
         EV << "ORDERING BY FAIR CQI" << endl;
     }
 }
