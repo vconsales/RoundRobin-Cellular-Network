@@ -245,8 +245,6 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
-	nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
-
 	x_max <- max(plotdata$usertraffic)
 	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
 
@@ -255,11 +253,17 @@ plotAllModulesStatistics <- function(plotdata) {
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
-	y_max <- round(max(nonsaturared_data$responsetime.mean)/(1), digits=0)
-	plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
+	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
-	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
+
+	#zoommato
+	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
+	#plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	#geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	#coord_cartesian(ylim = c(0, 0.02)) +
+	#geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
