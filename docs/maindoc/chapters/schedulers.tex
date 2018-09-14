@@ -40,11 +40,11 @@ The obtained network, by setting \(n=10\), is the following:
 
 \begin{itemize}
 %\subsection{Round-Robin Frame Fill}
-  \item \textbf{Round-Robin Frame Fill}
-  The residual space  in the frame is filled by considering the following \texttt{FIFOQueues\textsubscript{j}} \(j \in \{ (i+1)\textnormal{mod } n,(i+2)\textnormal{mod }n,\ldots \} \)
+  \item \textbf{Fair Frame Fill}
+  The residual space  in the frame is filled by considering the user \(j\), where \(j \neq currentUser\). Every user \(j\) has the same probability to be chosen.
 %\subsection{Best CQI based Frame Fill}
   \item \textbf{Best CQI based Frame Fill}
-   The residual space in the frame is filled by considering the users with the best(highest) CQI in a decreasing order. In the case of \(CQI\textsubscript{i}=CQI\textsubscript{j} \mid i < j\) is selected the user \(i\).
+   The residual space in the frame is filled by considering the users with the best(highest) CQI in a decreasing order. In the case of \(CQI_i=CQI_j \mid i < j\) is selected the user \(i\).
 \end{itemize}
 We will analyze the effect of both policy to performace regarding the throughput and the response time for each user with varying workloads.
 
