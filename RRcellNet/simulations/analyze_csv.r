@@ -5,6 +5,7 @@ library(grid)
 library(tikzDevice)
 
 basedir <- "./csv_results/"
+THROUGHPUT_MARGIN <- 40000
 
 # == Source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/ ==
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
@@ -69,6 +70,11 @@ prepareMeasures <- function(csvfile) {
 	colnames(AllRbCounts)[3] <- "rbcount"
 	AllRbCounts$rbcount <- as.numeric(as.character(AllRbCounts$rbcount))
 
+	AllPacketCounts <- csvData[csvData$type=="scalar" & csvData$name=="packetCount:mean", c("run", "module", "value")]
+	colnames(AllPacketCounts)[3] <- "packetcount"
+	AllPacketCounts$packetcount <- as.numeric(as.character(AllPacketCounts$packetcount))
+	AllPacketCounts$module <- gsub("\\CellularNetwork.antenna.queue", "CellularNetwork.users", AllPacketCounts$module)
+
 	AllRepetitions <- csvData[csvData$type=="runattr" & csvData$attrname=="repetition", c("run", "attrvalue")]
 	colnames(AllRepetitions)[2] <- "repetition"
 	AllRepetitions$repetition <- as.numeric(as.character(AllRepetitions$repetition))
@@ -84,7 +90,11 @@ prepareMeasures <- function(csvfile) {
 	temp_merge2 <- merge(temp_merge1, AllConfigNames)
 	temp_merge3 <- merge(temp_merge2, AllThroughputBits)
 	temp_merge4 <- merge(temp_merge3, AllRbCounts)
-	merged_result <- merge(temp_merge4, AllResponseTimes)
+	temp_merge5 <- merge(temp_merge4, AllPacketCounts)
+	merged_result <- merge(temp_merge5, AllResponseTimes)
+
+	# add inputthroughput universal column, depends on usertraffic
+	merged_result$inputthroughput = (312*10^3)*merged_result$usertraffic
 
 	return(merged_result)
 }
@@ -166,10 +176,26 @@ aggregateClientMeasures <- function(measures) {
 	# trasform confidence(...) vectors into columns
 	rbcount_agg_clients <- do.call(data.frame, rbcount_agg_clients)
 
+	## ResourceBlock count (on usertraffic variation)
+
+	# group by lambda and client. Compute mean and stdev for packetcount values
+	packetcount_agg_clients <- aggregate(list(values=measures$packetcount),
+		by = list(module=measures$module, scenario=measures$scenario, usertraffic=measures$usertraffic),
+		function(x) c(mean=mean(x), stdev=sd(x), samples=length(x), confidence(mean(x), sd(x), length(x))))
+	colnames(packetcount_agg_clients)[4] <- "packetcount"
+
+	# trasform confidence(...) vectors into columns
+	packetcount_agg_clients <- do.call(data.frame, packetcount_agg_clients)
+
+
 
 	# merging throughput, responsetime and rbcount data frames
-	partial_merge <- merge(throughput_agg_clients, responsetime_agg_clients)
-	allStats <- merge(partial_merge, rbcount_agg_clients)
+	partial_merge1 <- merge(throughput_agg_clients, responsetime_agg_clients)
+	partial_merge2 <- merge(partial_merge1, rbcount_agg_clients)
+	allStats <- merge(partial_merge2, packetcount_agg_clients)
+
+	# add inputthroughput universal column, depends on usertraffic
+	allStats$inputthroughput = (312*10^3)*allStats$usertraffic
 
 	# returning the merged dataframe
 	return(allStats)
@@ -219,6 +245,8 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
+	nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
+
 	x_max <- max(plotdata$usertraffic)
 	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
 
@@ -227,8 +255,8 @@ plotAllModulesStatistics <- function(plotdata) {
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
-	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
-	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	y_max <- round(max(nonsaturared_data$responsetime.mean)/(1), digits=0)
+	plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
@@ -259,6 +287,60 @@ plotAllModulesRBcountsByTrafficComparision <- function(plotdata1, plotdata2, cli
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1), position=position_dodge(.9))
 
 	multiplot(plot_rb);
+}
+
+plotAllModulesPacketCounts <- function(plotdata) {
+	plot_packetcount <- ggplot(plotdata, aes(x=usertraffic, y=packetcount.mean, colour=module, group=module)) +
+	geom_line() +
+	geom_errorbar(aes(ymin=packetcount.confmin, ymax=packetcount.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	multiplot(plot_packetcount);
+}
+
+plotAllLittle <- function(plotdata) {
+	computeddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN, ]
+	computeddata$littleresponsetime <- (computeddata$packetcount.mean/computeddata$usertraffic)/1000
+
+	plot_rs <- ggplot(computeddata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	geom_line() + coord_cartesian(ylim = c(0, 0.02)) +
+	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	plot_little <- ggplot(computeddata, aes(x=usertraffic, y=littleresponsetime, colour=module, group=module)) +
+	geom_line() + coord_cartesian(ylim = c(0, 0.02))
+
+	plotdouble_singlelegend(plot_rs, plot_little);
+}
+
+plotLittleRegression <- function(plotdata, clientindex) {
+	filtereddata <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput) < THROUGHPUT_MARGIN & plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+	#print(filtereddata)
+
+	m <- lm(responsetime ~ I((packetcount/usertraffic)/1000), filtereddata)
+
+	eq <- substitute(italic(y) == a + b %.% italic(x)*","~~italic(r)^2~"="~r2,
+         list(a = format(coef(m)[1], digits = 2),
+              b = format(coef(m)[2], digits = 2),
+             r2 = format(summary(m)$r.squared, digits = 3)))
+
+	plot_lr <- ggplot(filtereddata, aes(x=responsetime, y=((packetcount/usertraffic)/1000), colour=module, group=module)) +
+	geom_smooth(method="lm") + geom_point() +
+	annotate(geom = 'text', label = as.character(as.expression(eq)), x = -Inf, y = Inf, hjust = 0, vjust = 1, parse = TRUE)
+	#geom_text(aes(x = 0, y = 0, label = as.character(as.expression(eq))), parse = TRUE)
+
+	multiplot(plot_lr)
+}
+
+plotThroughputSaturationLines <- function(plotdata, clientindex) {
+	filtereddata <- plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+
+	plot_sl <- ggplot(filtereddata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) + geom_line() +
+	geom_line(aes(x=usertraffic, y=inputthroughput, colour=module, group=module)) +
+	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	multiplot(plot_sl);
 }
 
 plotModuleComparision <- function(plotdata1, moduleindex1, plotdata2, moduleindex2) {
@@ -615,7 +697,8 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allrb, allrbbars, lorallth, lorallrt, lorallrb\n");
+cat("\tall, allrb, allrbbars, allpacketcount, alllittle, lorallth, lorallrt, lorallrb\n");
+cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
@@ -693,6 +776,62 @@ while(1) {
 				else {
 					startDevice()
 					plotAllModulesRBcountsByTrafficComparision(data1, data2, as.numeric(params[4]))
+				}
+			}
+		},
+		allpacketcount={
+			if(length(params) != 2)
+				cat("allpacketcount usage: allpacketcount <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllModulesPacketCounts(data1)
+				}
+			}
+		},
+		alllittle={
+			if(length(params) != 2)
+				cat("alllittle usage: alllittle <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotAllLittle(data1)
+				}
+			}
+		},
+		littleregr={
+			if(length(params) != 3)
+				cat("littleregr usage: littleregr <scenario> <clientindex>\n")
+			else {
+				data1=parsescenario_prep[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotLittleRegression(data1, as.numeric(params[3]))
+				}
+			}
+		},
+		thsat={
+			if(length(params) != 3)
+				cat("thsat usage: thsat <scenario> <clientindex>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice()
+					plotThroughputSaturationLines(data1, as.numeric(params[3]))
 				}
 			}
 		},

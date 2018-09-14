@@ -28,6 +28,10 @@ class FIFOQueue : public cSimpleModule
   private:
     cGate *inData_p;
     cGate *outData_p;
+    simtime_t SELF_MESSAGE_DELAY;
+    cMessage *self_message;
+
+    simsignal_t packetCount_s;
   protected:
     cPacketQueue queue;
     virtual void initialize();
