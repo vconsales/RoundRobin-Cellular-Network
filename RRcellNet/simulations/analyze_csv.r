@@ -723,9 +723,12 @@ cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
 cat("\n");
 
+f <- file("stdin")
+open(f)
+
 while(1) {
 	cat("$ ");
-	cmdstr <- readLines("stdin",n=1);
+	cmdstr <- readLines(f,n=1,skipNul=TRUE);
 	params <- unlist(strsplit(cmdstr, " "));
 
 	switch(params[1],
