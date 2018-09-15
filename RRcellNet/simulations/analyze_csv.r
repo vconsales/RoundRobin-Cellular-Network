@@ -338,9 +338,12 @@ plotLittleRegression <- function(plotdata, clientindex) {
 
 plotThroughputSaturationLines <- function(plotdata, clientindex) {
 	filtereddata <- plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+	x_max <- max(filtereddata$usertraffic)
+	y_max <- round(max(filtereddata$throughput.mean)/(1), digits=0)
 
 	plot_sl <- ggplot(filtereddata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) + geom_line() +
 	geom_line(aes(x=usertraffic, y=inputthroughput, colour=module, group=module)) +
+	scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
