@@ -9,7 +9,7 @@ In this chapter we will consider \texttt{Mobile Stations} which, at each timeslo
 \end{itemize}
 This scenario is almost similar to the NoFraming Validation test, but the main difference is that \(packetsize\) is a uniform RV. As we said before we expect to get worse throughput result due to the fact that some RB space will be left empty because packets cannot be fragmented. 
 
-We will simulate the scenario with both scheduler and we will check if our first intuition is true or not and the impact of \textbf{framing} in the average performance metrics.
+We will simulate the scenario with both scheduler and we will check if our first intuition is true or not and the impact of packet allocation policies on the average performance metrics.
 
 \section{Uniform CQI, Fair Scheduler}
 In this simulation we will consider the basic \textbf{Fair Scheduler}. We remember that, in this case, if \(currentUser\) empties his queue or has a packet that is bigger than \(RB_{size}\) the scheduler will consider the next users.
@@ -70,15 +70,7 @@ We can add another case:
 \end{align}
 None of the packets cannot be inserted into the framechunk, so the RB is completely wasted. This is the case that lowers the throughput, due to the fact that packet sizes are small and CQIs are low. However, in our scenarios (Uniform, UniformBest, Binomial ...) the number of users is high enough (10 users) to get, more likely, at least a small packet and/or at least a good enough CQIs to not waste the remaining space.
 
-%At the end we can see that this result lies between \textit{NoFramingTest} and \textit{Uniform BestCQI} results: in fact ``The user CQI is high'' is the main policy of BestCQI scheduler. However, in that scenario, we can't consider ``The packet is small'' because BestCQI user is \textbf{always} selected as first for the residual frame filling, and this increases the throughput for BestCQI scenario.
-
-%CQIs and packet sizes are always uniform for all clients, so we suspect that all clients will benefit of a small and equal throughput increase.
-%\begin{center}
-%	INSERIRE IMMAGINE QUI ALLTH NOFRAMINGTEST EVENTUALMENTE, magari confrontare il test con quelli dell'uniform e far vedere che i throughput sono più bassi in NoFrameFilling
-%\end{center}
-%\
-
-Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't make an exact model of the system in order to proof this result analytically. 
+Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't make an exact model of the system in order to prove this result analytically.
 At the end of simulation we can summarize these results about the Uniform Scenario with Fair Scheduler:
 \begin{itemize}
 	\item Saturation rate \(\lambda = 3.1\)
@@ -87,7 +79,7 @@ At the end of simulation we can summarize these results about the Uniform Scenar
 \end{itemize} 
 
 \section{Uniform, Best CQI scheduler}
-Now we will simulate the scenario by using the second scheduler. If there were not \textbf{framing} the performance of both scheduler would be the same but, as seen before, \textbf{framing} is present and has a great impact in performance. We can expect this scheduler will have better performance in throughput since it fills the residual space inside the frame by using packets addressed to users with higher CQIs.
+Now we will simulate the scenario by using the second scheduler. If there were not \textbf{frame sharing} the performance of both scheduler would be the same but, as seen before, \textbf{frame sharing} is present and has a remarkable impact on performance. We can expect that this scheduler will have better performance in throughput since it fills the residual space of the frame by first serving users with the highest CQIs.
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/unifbest}
    \caption{Uniform scenario - BestCQI: throughput, response time}
@@ -100,7 +92,17 @@ Result for Uniform Scenario with Best CQI Scheduler in saturation:
 	\item Antenna throughput \(th_{antenna} = 8981747 \pm 14355 \textnormal{ bps}\), \textit{conf lvl 95\%}
 	\item User throughput \(th_{i} = 897148 \pm 4772 \textnormal{ bps}\), \textit{conf lvl 95\%}
 \end{itemize} 
-We can see cleary an increase of throughput per each user and smaller the response time with respect to fair scheduler. The saturation point is the same at about \(\lambda=3.1\) but the throughput as we said is higher. The reason is that the residual space in the frame is used better since it is selected the user with the best CQI in order to carry as much data as possible. We can see also that the throughput distribution is fair among the users if we plot the lorenz curves for throughput and response time.
+We can see cleary an increase of throughput per each user and smaller response times with respect to the fair scheduler. The saturation point is the same at about \(\lambda=3.1\) but the throughput, as we said, is higher. The reason is that the residual space in the frame is used better since the best CQI user can use the higher resource block size at that moment. As a proof of this statement we can see how much RBs are used at a fixed lambda rate:
+
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{allrbbars-unif-unifbest-1.1}.png}
+   \caption{Mean Used Resource Blocks at \(\lambda = 1.1\)} for each user, comparing Uniform and Uniform BestCQI
+  \label{fig:allrbbars-unif-unifbest-1.1}
+\end{figure}
+
+As we can see all clients use less RB blocks because of the higher residual frame size, leading to a more efficient use of the transmission channel.
+
+We can also see that the throughput distribution is fair among the users checking the Lorenz Curves for throughput and response time.
 \begin{figure}[H]
 \begin{minipage}[b]{8cm}
 	\includegraphics[width=7.5cm]{images/lorenzTH-unifbest}
@@ -111,7 +113,8 @@ We can see cleary an increase of throughput per each user and smaller the respon
 	\caption{Uniform scenario - BestCQI: lorenz curves}
   	\label{fig:Uniform scenario - BestCQI: lorenz curves}
 \end{figure}
-At the end in order to choose the best scheduler for that scenario we decided to compare the empirical cdf of throughput near the saturation point \(\lambda=3.1\).
+
+At the end, in order to choose the best scheduler for that scenario, we decided to compare the empirical cdf of throughput near the saturation point \(\lambda=3.1\).
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest2.1}.png}
    \caption{Uniform scenario: ECDF comparison \(\lambda=2.1\)}
@@ -124,4 +127,18 @@ At the end in order to choose the best scheduler for that scenario we decided to
   \label{fig:Uniform scenario: ECDF comparison lambda3.1}
 \end{figure}
 
-We observe that the Best CQI Scheduler is definitely better than the Fair one when \(\lambda \ge \lambda_{sat}\) otherwise the performance are about the same. The fairness is garanted by both scheduler in all \textit{arrival rates} but this is not surprising CQI and service demand have the same uniform distribution for all users. The result is that each users exploits an equal slice of available resources to the antenna. 
+We observe that the Best CQI Scheduler is definitely better than the Fair one when \(\lambda \ge \lambda_{sat}\) otherwise the performance are about the same. The fairness is garanted by both scheduler in all \textit{arrival rates} but this is not surprising because CQI and service demand has the same uniform distribution for all users. The result is that each user exploits an equal slice of available resources to the antenna.
+
+\subsection{Frame Sharing effects}
+
+As we said in the previous chapters, we suspected that this policy could negatively influence throughput and response time, but we proved this is wrong (starting from NoFramingTest results). In this case we can also see that all users benefit from a more efficient use of the channel: infact when a user leaves some unfilled frame space to another one, it let the other user to use more efficiently that space (but for itself). However CQIs are uniformly distributed, so there is a good chance that roles could switch in the next round. At the end, the policy leads to a sort of mutually beneficial channel sharing.
+
+As a final comparision, let's check global antenna throughput values for NoFramingTest, Uniform Fair and Uniform Best CQI scenarios when all client arrival rates are beyond \(\lambda_{sat}\):
+
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{thantennamax-1}.png}
+   \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
+  \label{fig:Uniform scenario: ECDF comparison lambda3.1}
+\end{figure}
+
+At the end we can see that \textit{Uniform Fair CQI} result lies between \textit{NoFramingTest} and \textit{Uniform BestCQI} results. This can be explained considering what we said before about the distribution of the residual frame size. ``The user CQI is high'' is the main policy of BestCQI scheduler. However, in Best CQI scenario, we can't consider ``The packet is small'' because Best CQI user is \textbf{always} selected as first for the residual frame filling, and this increases the throughput for that scenario, w.r.t. Uniform CQI Fair scenario.

@@ -87,9 +87,11 @@ At the end we can observe that if the system is unstable \(RT(t)\) has a linear 
 
 \section{3\textsuperscript{rd} test: NoFramingTest, uniform CQI, exponential interarrivals, fixed packet size, 10 users}
 
-This is a test to validate eventually the model shown in the previous chapter. It's too difficult to build a full matematical model starting from the requirements, but having no one is not helpful in explaining the simulation results. So we started to build simple models by leaving off some of the requirements and by considering only some specific conditions (like saturation). In our case one of the most difficult things to model is packet framing: as the requirements said, every RB cannot contain packets from two or more different users. This means that there will be some wasted space to consider. Furthermore, if a packet cannot completely fill the frame, it cannot be scheduled and the scheduler moves to the next user.
+This is a test to validate eventually the model shown in the previous chapter. It's too difficult to build a full matematical model starting from the requirements, but having no one is not helpful in explaining the simulation results. So we started to build simple models by leaving off some of the requirements and by considering only some specific conditions (like saturation). In our case one of the most difficult things to model is \textit{frame sharing}.
+As the requirements said, we have two \textit{packet allocation policies} to implement: if a packet cannot completely fill the frame, it cannot be scheduled and the scheduler moves to the next user. Furthermore, every RB cannot contain packets from two or more different users. This means that there will be some wasted space to consider.
+The first policy is what causes \textit{frame sharing}, because some totally free RB are used to empty to serve di other users.
 
-A question now arises: how this packet framing policy will influence our results? Intuition make us think that total antenna throughput will get somewhat worse, just thinking about the wasted space.
+A question now arises: how this packet allocation policies will influence our results? Intuition make us think that total antenna throughput will get somewhat worse, just thinking about the wasted space.
 To confirm this intuition we set up another scenario, called NoFramingTest, which will be running using the following parameters:
 
 \begin{itemize}
@@ -99,7 +101,7 @@ To confirm this intuition we set up another scenario, called NoFramingTest, whic
 	\item \(interarrivalrate_i \sim exp(\lambda)\)
 \end{itemize}
 
-The most strange parameter here is \(packetsize\). This is a simple way to have no framing at all in our simulation. We could end up fixing \(packetsize=1 \textnormal{ B}\), which would be the simplest way, however simulation would be too heavy to run at higher traffic rates (we tried, but our PCs started frying). Recalling that we need just to check throughput in saturation, we can suppose that every frame is only filled with packets from the currently selected user (using RR policy).
+The most strange parameter here is \(packetsize\). This is a simple way to have no frame sharing at all in our simulation. We could end up fixing \(packetsize=1 \textnormal{ B}\), which would be the simplest way, however simulation would be too heavy to run at higher traffic rates (we tried, but our PCs started frying). Recalling that we need just to check throughput in saturation, we can suppose that every frame is only filled with packets from the currently selected user (using RR policy).
 Studying the formula that defines the total frame size of each client in our model:
 \begin{equation}
 	\begin{split}
@@ -112,13 +114,27 @@ The number of packets that will fill the frame can be computed as:
 \#packets_i = framesize_i/packetsize
 \end{equation}
 where \(packetsize\) is fixed, our goal is to find a \(packetsize\) such that \(\#packets_i\) is a natural number (all packets fill exactly the frame) for each client (\(i\)).
-As we said, \(packetsize=1\) is a solution, however another interesting solution is \(packetsize=25\). This is due to the fact the \(\#RB=25\) is fixed and used to compute every client frame size. Note that this is valid only if frame is filled every time by a single client (as the previous assumption). Lets check the results:
+As we said, \(packetsize=1\) is a solution, however another interesting solution is \(packetsize=25\). This is due to the fact the \(\#RB=25\) is fixed and used to compute every client frame size. Note that this is valid only if frame is filled every time by a single client (as the previous assumption).
+Lets check the throughput results:
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{all-nofram}.png}
+   \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
+  \label{fig:all-nofram}
+\end{figure}
 
-\begin{center}
-	INSERIRE GRAFICO THANTENNA QUI\\
-	INSERIRE GRAFICO FILLRB QUI\\
-	(dovrebbe essere esattamente a zero quando i client saturano)
-\end{center}
+First let's make sure that no \textit{frame sharing} happens at the higher throughput rates:
+\(lambda_{sat}\) is at about \(4.1\) and we can see from the next graph that there is no \textit{frame sharing} at all over that rate! This graph measures basically how many RBs are shared to users other than the current served user.
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/{fillrb-nofram}.png}
+   \caption{Mean nfill graph, NoFramingTest scenario}
+  \label{fig:fillrb-nofram}
+\end{figure}\
+Note that for \(\lambda_i < \lambda_{sat}\) \textit{frame sharing} is still present because \(nfill > 0\) and that is what we expected.
+
+Now we can extract the throughput at \(\lambda_{sat}\), which is \(8127675 \pm 13109\ bit/s \simeq 8.128 \pm 0.131\ Mbit/s\).
+%th_confmin 8114566
+%th_mean:   8127675 +- 13109
+%th_confmax 8140784
 
 A simple mathematical model to compute antenna total throughput can be:
 \begin{equation}
@@ -142,6 +158,6 @@ which is constant for all clients. In this case the initial model can be simplif
 \begin{equation}
 E[th_{antenna}] = \frac{\#RB \times E[rbsize_i]}{1/T_{slot}} \times 8 = 8.12 \textnormal{ Mbps}
 \end{equation}
-The mean \textbf{matches exactly} the simulation results!
+The mean \textbf{matches} the throughput simulated result!
 
-This test is not only for a validation purpose, but it is a starting point to study how fragmentation impacts network performances. We will see this later.
+This test is not only for a validation purpose, but it is a starting point to study how frame sharing impacts network performances. We will see this later.
