@@ -245,8 +245,6 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 }
 
 plotAllModulesStatistics <- function(plotdata) {
-	nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
-
 	x_max <- max(plotdata$usertraffic)
 	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
 
@@ -255,11 +253,17 @@ plotAllModulesStatistics <- function(plotdata) {
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
-	y_max <- round(max(nonsaturared_data$responsetime.mean)/(1), digits=0)
-	plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
+	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
 	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
-	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
+
+	#zoommato
+	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
+	#plot_rt <- ggplot(nonsaturared_data, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	#geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	#coord_cartesian(ylim = c(0, 0.02)) +
+	#geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
@@ -334,9 +338,12 @@ plotLittleRegression <- function(plotdata, clientindex) {
 
 plotThroughputSaturationLines <- function(plotdata, clientindex) {
 	filtereddata <- plotdata[plotdata$module == sprintf("CellularNetwork.users[%d]",clientindex), ]
+	x_max <- max(filtereddata$usertraffic)
+	y_max <- round(max(filtereddata$throughput.mean)/(1), digits=0)
 
 	plot_sl <- ggplot(filtereddata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) + geom_line() +
 	geom_line(aes(x=usertraffic, y=inputthroughput, colour=module, group=module)) +
+	scale_x_continuous(breaks=seq(0,x_max,0.5)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
@@ -595,14 +602,22 @@ switchOutput <- function(mode)
 	outputmode <<- mode;
 }
 
-startDevice <- function()
+startDevice <- function(cparams)
 {
+	filename <- paste(cparams, collapse = '-')
+
 	if(outputmode == "window")
 		X11(width=14, height=7)
-	else if(outputmode == "tikz")
-		tikz(file = "plot_test.tex", sanitize=TRUE, width = 5, height = 5)
-	else if(outputmode == "png")
-		png("plot.png", 4400, 2200, units = "px", res=300)
+	else if(outputmode == "tikz") {
+		filename <- paste(filename, ".tex", collapse='', sep='')
+		tikz(file = filename, sanitize=TRUE, width = 5, height = 5)
+		cat(paste("exported to ", filename, "\n", collapse='', sep=''))
+	}
+	else if(outputmode == "png") {
+		filename <- paste(filename, ".png", collapse='', sep='')
+		png(filename, 4400, 2200, units = "px", res=300)
+		cat(paste("exported to ", filename, "\n", collapse='', sep=''))
+	}
 	else if(outputmode == "plotly")
 		cat("plotly is not yet supported.\n")
 }
@@ -702,6 +717,7 @@ cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
+cat("\tthusrate")
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
@@ -745,7 +761,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesStatistics(data1)
 				}
 			}
@@ -759,7 +775,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesRBcounts(data1)
 				}
 			}
@@ -774,7 +790,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesRBcountsByTrafficComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -788,7 +804,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesPacketCounts(data1)
 				}
 			}
@@ -802,7 +818,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllLittle(data1)
 				}
 			}
@@ -816,7 +832,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLittleRegression(data1, as.numeric(params[3]))
 				}
 			}
@@ -830,7 +846,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotThroughputSaturationLines(data1, as.numeric(params[3]))
 				}
 			}
@@ -856,7 +872,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotModuleComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
@@ -871,7 +887,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotModuleRBComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
@@ -885,7 +901,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRate(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -899,7 +915,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRateResponseTimes(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -913,7 +929,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRateRBcount(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -928,7 +944,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurveComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -943,7 +959,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurveRBcountComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -958,7 +974,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotThroughputEcdfComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]));
 				}
 			}
@@ -973,7 +989,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotBoxplotThroughputComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]))
 				}
 			}
@@ -987,7 +1003,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotSchedulerFrameFillRBcount(data1)
 				}
 			}
@@ -999,7 +1015,7 @@ while(1) {
 				cat("\tgroup can be: 0 (noframing), 1 (uniforms), 2 (binomials), 3 (validations)\n")
 			}
 			else {
-				startDevice()
+				startDevice(params)
 
 				if(params[2] == 0)
 					plotThantenna(list(antennaNoFraming))
@@ -1020,7 +1036,7 @@ while(1) {
 				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations)\n")
 			}
 			else {
-				startDevice()
+				startDevice(params)
 
 				if(params[2] == 0)
 					plotThantennaMax(list(antennaValidation1, antennaValidation2, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI))
@@ -1032,6 +1048,21 @@ while(1) {
 					plotThantennaMax(list(antennaValidation1, antennaValidation2))
 				else
 					cat("invalid group!\n")
+			}
+		},
+		thusrate={
+			if(length(params) != 4)
+			{
+				cat("thusrate usage: thusrate <scenario> <user> <rate>\n")
+			} else {
+				data1=parsescenario_data[[ params[2] ]]
+				#cat(data1[data1$usertraffic == params[4] & data1$module == sprintf("CellularNetwork.users[%s]",params[3]),])
+				th_confmin = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.confmin
+				th_confmax = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.confmax
+				th_mean = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.mean
+				cat("th_confmin", th_confmin)
+				cat("\nth_mean: ",th_mean)
+				cat("\nth_confmax", th_confmax,"\n")
 			}
 		},
 		{

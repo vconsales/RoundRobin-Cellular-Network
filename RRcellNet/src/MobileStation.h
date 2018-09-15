@@ -42,7 +42,6 @@ private:
     unsigned int cqi_binomial_n;
     double cqi_binomial_p;
 
-    static unsigned int idUser_counter;
     int idUser;
     int nFrameSlots;
     simtime_t timeFramePeriod;

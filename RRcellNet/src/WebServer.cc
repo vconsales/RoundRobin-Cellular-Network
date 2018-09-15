@@ -35,7 +35,7 @@ void WebServer::initialize()
 void WebServer::handleMessage(cMessage *msg)
 {
     if( msg->isSelfMessage() ){
-        int sizePkt = uniform(size_uniform_a, size_uniform_b, RNG_UNI_PACKETSIZE_INDEX);
+        int sizePkt = intuniform(size_uniform_a, size_uniform_b, RNG_UNI_PACKETSIZE_INDEX);
 
         // generation of a new packet
         UserPacket *msg = new UserPacket(NULL, 0);
