@@ -19,11 +19,11 @@
 
 Define_Module(MobileStation);
 
-unsigned int MobileStation::idUser_counter = 0;
-
 void MobileStation::initialize()
 {
-    idUser = idUser_counter++;
+    // get this instance index in users module vector
+    idUser = this->getIndex();
+    EV << " new instance with id = " << idUser << endl;
 
     // beep, parameters and gates
     beepMS = new cMessage("beepMS");
@@ -143,6 +143,5 @@ void MobileStation::handleMessage(cMessage *msg)
 
 MobileStation::~MobileStation()
 {
-    //TODO: This is not so correct.
-    idUser_counter--;
+
 }

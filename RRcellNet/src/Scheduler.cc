@@ -84,6 +84,9 @@ void Scheduler::updateCQIs(cMessage *msg)
     rrUserStruct temp(idUser,CQI);
     usersVector.push_back(temp);
 
+    // if we don't wont to get src user ID from msg parameters, we could use getSenderModule()
+    // EV << "getSenderModule getIndex " << msg->getSenderModule()->getIndex() << endl;
+
     assert(CQI != 0);
     EV << "updateCQIs: idUser=" << idUser << " CQI=" << CQI << endl;
     delete msg;
