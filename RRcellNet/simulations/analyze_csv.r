@@ -709,6 +709,7 @@ cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
 cat("\tfillrb,\n");
 cat("\tthantenna, thantennamax\n");
+cat("\tthusrate")
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
@@ -1039,6 +1040,15 @@ while(1) {
 					plotThantennaMax(list(antennaValidation1, antennaValidation2))
 				else
 					cat("invalid group!\n")
+			}
+		},
+		thusrate={
+			if(length(params) != 4)
+			{
+				cat("thusrate usage: thusrate <scenario> <user> <rate>\n")
+			} else {
+				data1=parsescenario_data[[ params[2] ]]
+				cat(data1[data1$usertraffic == params[4] & data1$module == sprintf("CellularNetwork.users[%s]",params[3])])
 			}
 		},
 		{
