@@ -34,7 +34,6 @@ void Scheduler::initialize()
 
     // we start from the first user, so id 0 user
     currentUser = 0;
-    beepSched = new cMessage("beepScheduler");
 
     char buf[100];
     for(unsigned int i=0; i<nUsers; i++){
@@ -50,8 +49,7 @@ void Scheduler::initialize()
     // signals for statistics
     framefilledRbCount_s = registerSignal("framefilledRbCount");
 
-    //TODO: RISOLVERE PROBLEMA DELLA RICEZIONE DI TUTTI I CQI PRIMA DI COMPORRE IL FRAME
-    scheduleAt(simTime()+0.0001f, beepSched);
+    nrec_CQI = 0;
 }
 
 int integerRoundDivision(const int n, const int d)
@@ -61,19 +59,16 @@ int integerRoundDivision(const int n, const int d)
 
 void Scheduler::handleMessage(cMessage *msg)
 {
-    if( msg->isSelfMessage() ){
-        sendRBs();
-
-        // see you at the next timeslot...
-        scheduleAt(simTime()+(timeFramePeriod/1000), beepSched);
-
-    } else if( strcmp(msg->getName(),"cqiMSG") == 0 ){
+   if( strcmp(msg->getName(),"cqiMSG") == 0 ){
         updateCQIs(msg);
+       if( ++nrec_CQI == nUsers ){
+           sendRBs();
+           nrec_CQI = 0;
+       }
     }
 }
 
 Scheduler::~Scheduler(){
-  this->cancelAndDelete(beepSched);
 }
 
 int Scheduler::nextUser(){
@@ -89,33 +84,36 @@ void Scheduler::updateCQIs(cMessage *msg)
     rrUserStruct temp(idUser,CQI);
     usersVector.push_back(temp);
 
+    // if we don't wont to get src user ID from msg parameters, we could use getSenderModule()
+    // EV << "getSenderModule getIndex " << msg->getSenderModule()->getIndex() << endl;
+
     assert(CQI != 0);
     EV << "updateCQIs: idUser=" << idUser << " CQI=" << CQI << endl;
     delete msg;
 }
 
+class MyRNG {
+    private:
+        static const short RNG_CQISHUFFLE_INDEX = 0;
+        cSimpleModule& c;
+    public:
+        typedef size_t result_type;
+        MyRNG(cSimpleModule& c) : c(c) {}
+        static size_t min() { return 0; }
+        static size_t max() { return 100; }
+        size_t operator() () {
+            // generate a random number in the range [0, 100]
+            return c.intuniform(1,100, RNG_CQISHUFFLE_INDEX);
+        }
+};
+
 void Scheduler::scheduleUsers() {
-    std::function<bool(rrUserStruct,rrUserStruct)> lambda_fairScheduler =
-            [this] (rrUserStruct first, rrUserStruct second) {
-                // currentUser must be always on top
-                if(first.userId == this->currentUser)
-                    return true;
-                else if(second.userId == this->currentUser)
-                    return false;
-
-                // we want to order users from currentUser to the end and then WRAP
-                // example: currentUser=2 nUsers=6 => 2 3 4 5 0 1
-                if(first.userId > this->currentUser && second.userId < this->currentUser)
-                    return true;
-                else if(first.userId < this->currentUser && second.userId > this->currentUser)
-                    return false;
-
-                // else compare IDs
-                return first.userId < second.userId;
-            };
+    std::vector<size_t> rand_order(nUsers);
+    for(int i=0; i<nUsers; i++)
+        rand_order[i] = MyRNG(*this)();
 
     std::function<bool(rrUserStruct,rrUserStruct)> lambda_bestCQIScheduler =
-            [this,lambda_fairScheduler] (rrUserStruct first, rrUserStruct second) {
+            [this,rand_order] (rrUserStruct first, rrUserStruct second) {
                 // currentUser must be always on top
                 if(first.userId == this->currentUser)
                     return true;
@@ -127,10 +125,12 @@ void Scheduler::scheduleUsers() {
                     return true;
                 else if( first.receivedCQI < second.receivedCQI)
                     return false;
-
-                // what if CQIs are equal?
-                // just use the fair scheduling (:
-                return lambda_fairScheduler(first, second);
+                else{
+                    if(rand_order[first.userId] > rand_order[second.userId] )
+                        return true;
+                    else
+                        return false;
+                }
             };
 
 
@@ -142,7 +142,17 @@ void Scheduler::scheduleUsers() {
     }
     else    // otherwise we will user a fair scheduling
     {
-        std::sort(usersVector.begin(), usersVector.end(), lambda_fairScheduler);
+        //std::sort(usersVector.begin(), usersVector.end(), lambda_fairScheduler);
+
+        // Move current User to the top of vector
+        for (auto it = usersVector.begin(), lim = usersVector.end(); it != lim; ++it)
+            if (it->userId == this->currentUser) {
+                std::rotate(usersVector.begin(), it, it + 1);
+                break;
+            }
+
+        // Randomly shuffle remaining elements
+        std::shuffle(usersVector.begin()+1, usersVector.end(), MyRNG(*this));
         EV << "ORDERING BY FAIR CQI" << endl;
     }
 }

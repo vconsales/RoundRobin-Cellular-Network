@@ -22,7 +22,7 @@ simple FIFOQueue
 {  	    
    	parameters:
     	// mean response time (vector type, mean)
-		double packetCountBucket @unit(ms) = 0.1ms;
+		double packetCountBucket @unit(ms) = 1ms;
 		@signal[packetCount](type=int);
 		@statistic[packetCount](source "packetCount";record=vector,mean;);
 
