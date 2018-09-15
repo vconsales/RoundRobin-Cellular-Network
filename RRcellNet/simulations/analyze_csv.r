@@ -1048,7 +1048,13 @@ while(1) {
 				cat("thusrate usage: thusrate <scenario> <user> <rate>\n")
 			} else {
 				data1=parsescenario_data[[ params[2] ]]
-				cat(data1[data1$usertraffic == params[4] & data1$module == sprintf("CellularNetwork.users[%s]",params[3])])
+				#cat(data1[data1$usertraffic == params[4] & data1$module == sprintf("CellularNetwork.users[%s]",params[3]),])
+				th_confmin = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.confmin
+				th_confmax = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.confmax
+				th_mean = data1[data1$usertraffic == as.numeric(params[4]) & data1$module==sprintf("CellularNetwork.users[%s]",params[3]),]$throughput.mean
+				cat("th_confmin", th_confmin)
+				cat("\nth_mean: ",th_mean)
+				cat("\nth_confmax", th_confmax,"\n")
 			}
 		},
 		{
