@@ -602,14 +602,22 @@ switchOutput <- function(mode)
 	outputmode <<- mode;
 }
 
-startDevice <- function()
+startDevice <- function(cparams)
 {
+	filename <- paste(cparams, collapse = '-')
+
 	if(outputmode == "window")
 		X11(width=14, height=7)
-	else if(outputmode == "tikz")
-		tikz(file = "plot_test.tex", sanitize=TRUE, width = 5, height = 5)
-	else if(outputmode == "png")
-		png("plot.png", 4400, 2200, units = "px", res=300)
+	else if(outputmode == "tikz") {
+		filename <- paste(filename, ".tex", collapse='', sep='')
+		tikz(file = filename, sanitize=TRUE, width = 5, height = 5)
+		cat(paste("exported to ", filename, "\n", collapse='', sep=''))
+	}
+	else if(outputmode == "png") {
+		filename <- paste(filename, ".png", collapse='', sep='')
+		png(filename, 4400, 2200, units = "px", res=300)
+		cat(paste("exported to ", filename, "\n", collapse='', sep=''))
+	}
 	else if(outputmode == "plotly")
 		cat("plotly is not yet supported.\n")
 }
@@ -753,7 +761,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesStatistics(data1)
 				}
 			}
@@ -767,7 +775,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesRBcounts(data1)
 				}
 			}
@@ -782,7 +790,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesRBcountsByTrafficComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -796,7 +804,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllModulesPacketCounts(data1)
 				}
 			}
@@ -810,7 +818,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotAllLittle(data1)
 				}
 			}
@@ -824,7 +832,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLittleRegression(data1, as.numeric(params[3]))
 				}
 			}
@@ -838,7 +846,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotThroughputSaturationLines(data1, as.numeric(params[3]))
 				}
 			}
@@ -864,7 +872,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotModuleComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
@@ -879,7 +887,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotModuleRBComparision(data1, as.numeric(params[4]), data2, as.numeric(params[5]))
 				}
 			}
@@ -893,7 +901,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRate(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -907,7 +915,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRateResponseTimes(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -921,7 +929,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurvePerRateRBcount(data1, 0.1, 8.1, 0.5)
 				}
 			}
@@ -936,7 +944,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurveComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -951,7 +959,7 @@ while(1) {
 				if(is.null(data1) || is.null(data2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotLorentzCurveRBcountComparision(data1, data2, as.numeric(params[4]))
 				}
 			}
@@ -966,7 +974,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotThroughputEcdfComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]));
 				}
 			}
@@ -981,7 +989,7 @@ while(1) {
 				if(is.null(prepdata1) || is.null(prepdata2))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotBoxplotThroughputComparision(prepdata1, prepdata2, as.numeric(params[4]), as.numeric(params[5]))
 				}
 			}
@@ -995,7 +1003,7 @@ while(1) {
 				if(is.null(data1))
 					cat("invalid scenario\n")
 				else {
-					startDevice()
+					startDevice(params)
 					plotSchedulerFrameFillRBcount(data1)
 				}
 			}
@@ -1007,7 +1015,7 @@ while(1) {
 				cat("\tgroup can be: 0 (noframing), 1 (uniforms), 2 (binomials), 3 (validations)\n")
 			}
 			else {
-				startDevice()
+				startDevice(params)
 
 				if(params[2] == 0)
 					plotThantenna(list(antennaNoFraming))
@@ -1028,7 +1036,7 @@ while(1) {
 				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations)\n")
 			}
 			else {
-				startDevice()
+				startDevice(params)
 
 				if(params[2] == 0)
 					plotThantennaMax(list(antennaValidation1, antennaValidation2, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI))
