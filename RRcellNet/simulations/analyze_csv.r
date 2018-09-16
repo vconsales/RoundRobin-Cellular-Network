@@ -1111,7 +1111,7 @@ while(1) {
 			if(length(params) != 2)
 			{
 				cat("thantennamax usage: thantennamax <group>\n")
-				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations)\n")
+				cat("\tgroup can be: 0 (all), 1 (noframing + uniforms), 2 (binomials), 3 (validations), 4 (uniforms + noframing + binomial)\n")
 			}
 			else {
 				startDevice(params)
@@ -1124,6 +1124,8 @@ while(1) {
 					plotThantennaMax(list(antennaBinomial, antennaBinomialBestCQI))
 				else if(params[2] == 3)
 					plotThantennaMax(list(antennaValidation1, antennaValidation2))
+				else if(params[2] == 4)
+					plotThantennaMax(list(antennaNoFraming, antennaUniform, antennaUniformBestCQI, antennaBinomial, antennaBinomialBestCQI))
 				else
 					cat("invalid group!\n")
 			}
