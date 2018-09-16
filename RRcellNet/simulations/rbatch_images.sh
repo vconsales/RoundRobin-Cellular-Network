@@ -33,6 +33,8 @@ lorallrb binombest
 close
 lorallrt unifbest
 close
+lorallth binom
+close
 lorallth binombest
 close
 lorallth unifbest

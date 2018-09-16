@@ -249,18 +249,34 @@ plotSingleModuleResponseTime <- function(plotdata, clientindex) {
 	return(res)
 }
 
-plotAllModulesStatistics <- function(plotdata) {
+getPlotTicks <- function(plotdata) {
 	x_max <- max(plotdata$usertraffic)
-	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+	y_max_th <- max(plotdata$throughput.mean)
+	y_max_rt <- max(plotdata$responsetime.mean)
+
+	if(x_max < 10)
+		x_tick <- 0.5
+	else
+		x_tick <- round(x_max/14, digits=1)
+
+	y_tick_th <- round(y_max_th/32, digits=0)
+	y_tick_rt <- round(y_max_rt/32, digits=3)
+
+	return(list( "th" = list("x_max" = x_max, "x_tick" = x_tick, "y_max" = y_max_th, "y_tick" = y_tick_th),
+				 "rt" = list("x_max" = x_max, "x_tick" = x_tick, "y_max" = y_max_rt, "y_tick" = y_tick_rt)))
+}
+
+plotAllModulesStatistics <- function(plotdata) {
+	pt <- getPlotTicks(plotdata)
 
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
-	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,pt$th$y_max,pt$th$y_tick)) + scale_x_continuous(breaks=seq(0.1,pt$th$x_max,pt$th$x_tick)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
 	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=0)
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,pt$rt$y_max,pt$rt$y_tick)) + scale_x_continuous(breaks=seq(0.1,pt$rt$x_max,pt$rt$x_tick)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	#zoommato
@@ -274,11 +290,10 @@ plotAllModulesStatistics <- function(plotdata) {
 }
 
 plotAllModulesThroughput <- function(plotdata) {
-	x_max <- max(plotdata$usertraffic)
-	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+	pt <- getPlotTicks(plotdata)
 
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
-	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,pt$th$y_max,pt$th$y_tick)) + scale_x_continuous(breaks=seq(0.1,pt$th$x_max,pt$th$x_tick)) +
 	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1))
 
 	plotdown(plot_th);
@@ -286,11 +301,10 @@ plotAllModulesThroughput <- function(plotdata) {
 
 plotAllModulesResponseTimes <- function(plotdata) {
 	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
-	x_max <- max(plotdata$usertraffic)
-	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=4)
+	pt <- getPlotTicks(plotdata)
 
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) + scale_y_continuous(breaks=seq(0,y_max,y_max/10000)) +
+	geom_line() + scale_x_continuous(breaks=seq(0,pt$rt$x_max,pt$rt$x_tick)) + scale_y_continuous(breaks=seq(0,pt$rt$y_max,round(0.02/20, digits=4))) +
 	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
