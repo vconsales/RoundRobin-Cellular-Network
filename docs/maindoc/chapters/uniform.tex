@@ -1,6 +1,8 @@
 \chapter{Simulation: Uniform Scenarios}
 \section{Introduction}
-In this chapter we will consider \texttt{Mobile Stations} which, at each timeslot, generate CQIs with an integer uniform distribution. In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
+In this chapter we will consider \texttt{Mobile Stations} which, at each timeslot, generate CQIs with an integer uniform distribution. This setting simulate quite good the random way point scenario, where users move in the space. The user which moves n some slot receive strong signal, so it sends high CQI, in others receive weak signal so it sends low CQI.
+
+In the validation scenario we proved that scheduler is fair so we expect that all users will have similar values for the mean throughput and the mean response time. In this simulation we will consider the following parameters:
 \begin{itemize}
 	\item \(n=10\)
 	\item \(packetsize_{i} \sim U(3,75), \quad 0 \le i \le n-1\)
@@ -116,13 +118,13 @@ We can also see that the throughput distribution is fair among the users checkin
 
 At the end, in order to choose the best scheduler for that scenario, we decided to compare the empirical cdf of throughput near the saturation point \(\lambda=3.1\).
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-2.1}.png}
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-2.1-0}.png}
    \caption{Uniform scenario: ECDF comparison \(\lambda=2.1\)}
   \label{fig:Uniform scenario: ECDF comparison lambda2.1}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-3.1}.png}
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-3.1-0}.png}
    \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
   \label{fig:Uniform scenario: ECDF comparison lambda3.1}
 \end{figure}
