@@ -42,6 +42,11 @@ plotdouble_singlelegend <- function(p1, p2) {
 								nrow=1),
 				legend, nrow=2,heights=c(10, 1))
 }
+
+plotdown <- function(p1) {
+	p1 <- p1 + theme(legend.position="bottom")
+	multiplot(p1)
+}
 # =====================================================================================
 
 waitForClick <- function() {
@@ -268,6 +273,19 @@ plotAllModulesStatistics <- function(plotdata) {
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
 
+plotAllModulesResponseTimes <- function(plotdata) {
+	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
+	x_max <- max(plotdata$usertraffic)
+	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=4)
+
+	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) + scale_y_continuous(breaks=seq(0,y_max,y_max/10000)) +
+	coord_cartesian(ylim = c(0, 0.02)) +
+	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
+
+	plotdown(plot_rt);
+}
+
 plotAllModulesRBcounts <- function(plotdata) {
 	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
 	geom_line() +
@@ -286,11 +304,14 @@ plotAllModulesRBcountsByTrafficComparision <- function(plotdata1, plotdata2, cli
 	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
 	plotdata <- rbind(targetrate1, targetrate2)
 
+	# user name is too long to plot on x axis
+	plotdata$module <- gsub("\\CellularNetwork.users", "user", plotdata$module)
+
 	plot_rb <- ggplot(plotdata, aes(x=module, fill=scenario, y=rbcount.mean)) +
 		geom_bar(stat="identity", position="dodge") +
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1), position=position_dodge(.9))
 
-	multiplot(plot_rb);
+	plotdown(plot_rb);
 }
 
 plotAllModulesPacketCounts <- function(plotdata) {
@@ -299,7 +320,7 @@ plotAllModulesPacketCounts <- function(plotdata) {
 	geom_errorbar(aes(ymin=packetcount.confmin, ymax=packetcount.confmax, width=.1)) +
 	theme(legend.position="bottom")
 
-	multiplot(plot_packetcount);
+	plotdown(plot_packetcount);
 }
 
 plotAllLittle <- function(plotdata) {
@@ -386,7 +407,7 @@ plotModuleRBComparision <- function(plotdata1, moduleindex1, plotdata2, modulein
 		geom_line() + scale_y_continuous(breaks=seq(0,25,1)) +
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1))
 
-	multiplot(plot_th)
+	plotdown(plot_th)
 }
 
 plotLorentzCurvePerRate <- function(plotdata, clientratemin, clientratemax, clientratestep) {
@@ -476,7 +497,7 @@ plotLorentzCurveComparision <- function(plotdata1, plotdata2, clientrate) {
 		ggtitle(sprintf("Lorentz Curve Throughput Comparision (Rate = %s)", clientrate)) +
 		theme(plot.title = element_text(hjust = 0.5))
 
-	multiplot(resplot)
+	plotdown(resplot)
 }
 
 plotLorentzCurveRBcountComparision <- function(plotdata1, plotdata2, clientrate) {
@@ -495,7 +516,7 @@ plotLorentzCurveRBcountComparision <- function(plotdata1, plotdata2, clientrate)
 		ggtitle(sprintf("Lorentz Curve Throughput Comparision (Rate = %s)", clientrate)) +
 		theme(plot.title = element_text(hjust = 0.5))
 
-	multiplot(resplot)
+	plotdown(resplot)
 }
 
 plotThroughputEcdfComparision <- function(prepdata1, prepdata2, clientrate, moduleindex) {
@@ -506,7 +527,7 @@ plotThroughputEcdfComparision <- function(prepdata1, prepdata2, clientrate, modu
 	resplot <- ggplot(targetdata, aes(x=throughput)) +
 				stat_ecdf(aes(group=scenario, color=scenario))
 
-	multiplot(resplot)
+	plotdown(resplot)
 }
 
 plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, moduleindex) {
@@ -517,7 +538,7 @@ plotBoxplotThroughputComparision <- function(prepdata1, prepdata2, clientrate, m
 	resplot <- ggplot(targetdata, aes(x=usertraffic, y=throughput)) +
 				geom_boxplot(aes(group=interaction(usertraffic,scenario), fill=scenario))
 
-	multiplot(resplot)
+	plotdown(resplot)
 }
 
 plotSchedulerFrameFillRBcount <- function(plotdata) {
@@ -553,7 +574,7 @@ plotThantenna <- function(scenariodatalist) {
 		#geom_text(aes(label=ifelse(scenario=="NoFramingTest" & usertraffic==max(antennaNoFraming$usertraffic),
 		#	paste(round(max(antennaNoFraming$antennathroughput.mean)/(1), digits=0), 'bps'), '')), hjust=0.5, vjust=-0.5)
 
-	multiplot(resplot)
+	plotdown(resplot)
 }
 
 plotThantennaMax <- function(scenariodatalist) {
@@ -712,12 +733,13 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allrb, allrbbars, allpacketcount, alllittle, lorallth, lorallrt, lorallrb\n");
+cat("\tall, allrt, allrb, allrbbars, allpacketcount, alllittle\n");
+cat("\tlorallth, lorallrt, lorallrb\n");
 cat("\tlittleregr, thsat\n")
-cat("\tth, rb, lorth, lorrb, ecdf, boxplot,\n");
-cat("\tfillrb,\n");
+cat("\tth, rb, lorth, lorrb, ecdf, boxplot\n");
+cat("\tfillrb\n");
 cat("\tthantenna, thantennamax\n");
-cat("\tthusrate")
+cat("\tthusrate\n")
 cat("\tclose, exit\n");
 cat("Valid scenarios:\n\t");
 cat(paste(names(parsescenario_data), collapse = ' '));
@@ -766,6 +788,20 @@ while(1) {
 				else {
 					startDevice(params)
 					plotAllModulesStatistics(data1)
+				}
+			}
+		},
+		allrt={
+			if(length(params) != 2)
+				cat("allrt usage: allrt <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice(params)
+					plotAllModulesResponseTimes(data1)
 				}
 			}
 		},
