@@ -636,7 +636,7 @@ startDevice <- function(cparams)
 	}
 	else if(outputmode == "png") {
 		filename <- paste(filename, ".png", collapse='', sep='')
-		png(filename, 4400, 2200, units = "px", res=300)
+		png(filename, 4400, 2300, units = "px", res=400)
 		cat(paste("exported to ", filename, "\n", collapse='', sep=''))
 	}
 	else if(outputmode == "plotly")
