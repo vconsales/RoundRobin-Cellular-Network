@@ -26,7 +26,7 @@ Let's consider all the simulations with the following parameters:
 \end{itemize}
   We can se in the graph a linear behavior regarding the throughput until the system is not saturated. Note that the response time for each packet is zero since there is no queueing until \(\lambda < \lambda\textsubscript{max}\) and grows indefinitely when the system saturates. This is not surprising since \(th\textsubscript{in} \propto \lambda\) when \(\lambda < \lambda\textsubscript{max}\) and packet's size is fixed.
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/plotvalidation}
+  \includegraphics[width=1\textwidth]{images/all-val1}
   \caption{1st validation scenario: throughput, response time}
   \label{fig:1st validation scenario: throughput, response time}
 \end{figure}
@@ -51,7 +51,7 @@ We can compute the max \textit{slotted thorughput} for both users.
 	\end{split}
 \end{equation} 
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/plotvalidation2}
+  \includegraphics[width=1\textwidth]{images/all-val2}
   \caption{2nd validation scenario: throughput, response time}
   \label{fig:2nd validation scenario: throughput, response time}
 \end{figure}
@@ -60,7 +60,7 @@ At full load we expect that users compete to fill the frame. If the scheduler we
 We see in the graph that throghput grows linear ad is equal for both users when \(1 \leq \lambda \leq 10 \). For \(\lambda > 10 \) the \texttt{Mobile User[0]} saturates, conversely \texttt{Mobile User[1]} continues to increase its throughput until it reaches saturation at \(\lambda = 30\).
 When \(\lambda = 10 \) the input flow is \(th_{in}^{0} = th_{in}^{1} = (40 \times 8)/0.0001 = 3.2\textnormal{ Mbps}\) and this result could be seen also in the graph. Infact when \(\lambda \le 10 \) both users are in stable state so \(th_{in} = th_{out}\). We can see that, when \(\lambda\) increases the mean throughput approches to the half of slotted throughput as said before. However there is a small difference between the expected mean throughput and the result of simulation. This oddity can be explained better by analyzing the following graph, which shows the mean resource block per frame assigned to users.
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/RBCompvalidation2}
+  \includegraphics[width=1\textwidth]{images/rb-val2-val2-0-1}
   \caption{2nd validation scenario: mean RB count}
   \label{fig:2nd validation scenario: mean RB count}
 \end{figure}

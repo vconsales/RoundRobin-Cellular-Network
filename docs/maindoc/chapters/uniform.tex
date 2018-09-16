@@ -15,7 +15,7 @@ We will simulate the scenario with both scheduler and we will check if our first
 In this simulation we will consider the basic \textbf{Fair Scheduler}. We remember that, in this case, if \(currentUser\) empties his queue or has a packet that is bigger than \(RB_{size}\) the scheduler will consider the next users.
 
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/unif}
+  \includegraphics[width=1\textwidth]{images/all-unif}
   \caption{Uniform scenario - Fair: throughput, response time}
   \label{fig:Uniform scenario - Fair: throughput, response time}
 \end{figure}
@@ -25,7 +25,7 @@ In the graph we notice that \(\lambda_{sat}=3.1\). If we compare this rate with 
 
 The most important result, here, is the antenna total throughput. Lets see:
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/thantenna1}
+  \includegraphics[width=1\textwidth]{images/thantenna-1}
   \caption{Antenna throughput: UniformCQI, Validation-NoFramingTest}
   \label{fig:Antenna throughput: UniformCQI, Validation-NoFramingTest}
 \end{figure}
@@ -81,7 +81,7 @@ At the end of simulation we can summarize these results about the Uniform Scenar
 \section{Uniform, Best CQI scheduler}
 Now we will simulate the scenario by using the second scheduler. If there were not \textbf{frame sharing} the performance of both scheduler would be the same but, as seen before, \textbf{frame sharing} is present and has a remarkable impact on performance. We can expect that this scheduler will have better performance in throughput since it fills the residual space of the frame by first serving users with the highest CQIs.
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/unifbest}
+  \includegraphics[width=1\textwidth]{images/all-unifbest}
    \caption{Uniform scenario - BestCQI: throughput, response time}
   \label{fig:Uniform scenario - BestCQI: throughput, response time}
 \end{figure}
@@ -105,10 +105,10 @@ As we can see all clients use less RB blocks because of the higher residual fram
 We can also see that the throughput distribution is fair among the users checking the Lorenz Curves for throughput and response time.
 \begin{figure}[H]
 \begin{minipage}[b]{8cm}
-	\includegraphics[width=7.5cm]{images/lorenzTH-unifbest}
+	\includegraphics[width=7.5cm]{images/lorallth-unifbest}
 \end{minipage}
 \begin{minipage}[b]{8cm}
-	\includegraphics[width=7.5cm]{images/lorenzRT-unifbest}
+	\includegraphics[width=7.5cm]{images/lorallrt-unifbest}
 \end{minipage}
 	\caption{Uniform scenario - BestCQI: lorenz curves}
   	\label{fig:Uniform scenario - BestCQI: lorenz curves}
@@ -116,13 +116,13 @@ We can also see that the throughput distribution is fair among the users checkin
 
 At the end, in order to choose the best scheduler for that scenario, we decided to compare the empirical cdf of throughput near the saturation point \(\lambda=3.1\).
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest2.1}.png}
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-2.1}.png}
    \caption{Uniform scenario: ECDF comparison \(\lambda=2.1\)}
   \label{fig:Uniform scenario: ECDF comparison lambda2.1}
 \end{figure}
 
 \begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest3.1}.png}
+  \includegraphics[width=1\textwidth]{images/{ecdf-unif-unifbest-3.1}.png}
    \caption{Uniform scenario: ECDF comparison \(\lambda=3.1\)}
   \label{fig:Uniform scenario: ECDF comparison lambda3.1}
 \end{figure}
