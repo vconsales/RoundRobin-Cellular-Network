@@ -142,17 +142,17 @@ A simple mathematical model to compute antenna total throughput can be:
 \end{equation}
 \(rbsize_i\) is a RV variable with an unknown distribution, however
 \begin{equation}
-	 rbsize_i = f(CQI_i), \quad CQI_i\sim U(1,15), \quad \forall i \in [1,10]
+	 rbsize_i = f(CQI_i), \quad CQI_i\sim intU(1,15), \quad \forall i \in [1,10]
 \end{equation}
 This means we can simply use the general formula for functions of RVs
 \begin{equation}
 	E[X] = \sum_{x_i : g(x_i)=y_i}^{} g(x)p(x) = E[g(x)]
 \end{equation}
 Considering that
-\[f(CQI_i) = [3,3,6,11,15,20,25,36,39,50,63,72,80,93,93] \]
+\[f(cqi) = [3,3,6,11,15,20,25,36,39,50,63,72,80,93,93] \]
 our result, that will be used also in other computations, is
 \begin{equation}
-	E[rbsize_i] = \frac{1}{15} \times \sum_{i=1}^{10} f(CQI_i) =40.6 \textnormal{ B}, \quad \forall i \in [1,10]
+	E[rbsize_i] = \frac{1}{15} \times \sum_{cqi=1}^{15} f(cqi) = 40.6 \textnormal{ B}, \quad \forall i \in [1,10]
 \end{equation}
 which is constant for all clients. In this case the initial model can be simplified to
 \begin{equation}
