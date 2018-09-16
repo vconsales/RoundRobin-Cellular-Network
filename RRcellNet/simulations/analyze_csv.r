@@ -298,6 +298,9 @@ plotAllModulesRBcountsByTrafficComparision <- function(plotdata1, plotdata2, cli
 	targetrate2 <- plotdata2[plotdata2$usertraffic==clientrate,]
 	plotdata <- rbind(targetrate1, targetrate2)
 
+	# user name is too long to plot on x axis
+	plotdata$module <- gsub("\\CellularNetwork.users", "user", plotdata$module)
+
 	plot_rb <- ggplot(plotdata, aes(x=module, fill=scenario, y=rbcount.mean)) +
 		geom_bar(stat="identity", position="dodge") +
 		geom_errorbar(aes(ymin=rbcount.confmin, ymax=rbcount.confmax, width=.1), position=position_dodge(.9))

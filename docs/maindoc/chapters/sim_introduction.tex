@@ -9,7 +9,7 @@ Let's consider for example the mean throughput for a rate \(\lambda^{*}\). By ru
 
 \begin{align}
 	\bar{X} &= \frac{X_{1}+X_{2}+\ldots+X_{10}}{10} \qquad S^{2} = \frac{1}{9}\sum_{i=1}^{10}(X_{i} - \bar{X})^{2} \\
-	CI_{0.95} &= \left[\bar{X} - \frac{S}{\sqrt10}t_{0.025,9}, \: \bar{X} + \frac{S}{\sqrt10}t_{0.025,9}\right]
+	CI_{0.95} &= \left[\bar{X} - \frac{S}{\sqrt{10}}t_{0.025,9}, \: \bar{X} + \frac{S}{\sqrt{10}}t_{0.025,9}\right]
 \end{align}
 
 Similar consideration can be done for others quanties wich we will analyze during simulations. Once we have computed the mean \(\bar{X}\) and its confidence interval we can do a box plot for that quantity at varying workload \(\lambda\) as required by specifications. Data are exported from simulation to csv files through a bash script \textit{exportdata.sh} and plots are done through an R script \textit{analyze\_csv.r}. These script are both included in the directory \textit{RRCellNet/simulations}.
@@ -28,7 +28,7 @@ All parameters for simulations are summarized here and can be found in the file 
 \end{itemize}
 
 \section{Warm-Up Period Estimation}
-In the previous section we saw that the warm-up time is 0.3s, but we haven't specified yet how that value comes out.
+In the previous section we saw that the warm-up time is 0.5s, but we haven't specified yet how that value comes out.
 
 In this section we will illustrate how we have estimated the length of the warm-up period. We followed this approach: for each scenario and for each user we plotted the graph of the throughput and the response time and then for each repetition we applied the sliding moving average and then we computed the sample mean of the latter in order to see how many time it was required to converge around that value.
 We chosen the worst case among all of them, which graph is the following:
