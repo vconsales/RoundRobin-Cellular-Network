@@ -274,7 +274,7 @@ plotAllModulesResponseTimes <- function(plotdata) {
 	y_max <- round(max(plotdata$responsetime.mean)/(1), digits=4)
 
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) + scale_y_continuous(breaks=seq(0,y_max,y_max/10)) +
+	geom_line() + scale_x_continuous(breaks=seq(0,x_max,0.5)) + scale_y_continuous(breaks=seq(0,y_max,y_max/10000)) +
 	coord_cartesian(ylim = c(0, 0.02)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
