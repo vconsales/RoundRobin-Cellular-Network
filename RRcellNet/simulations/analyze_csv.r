@@ -273,6 +273,17 @@ plotAllModulesStatistics <- function(plotdata) {
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
 
+plotAllModulesThroughput <- function(plotdata) {
+	x_max <- max(plotdata$usertraffic)
+	y_max <- round(max(plotdata$throughput.mean)/(1), digits=0)
+
+	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,y_max,y_max/32)) + scale_x_continuous(breaks=seq(0,x_max,0.5)) +
+	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1))
+
+	plotdown(plot_th);
+}
+
 plotAllModulesResponseTimes <- function(plotdata) {
 	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
 	x_max <- max(plotdata$usertraffic)
@@ -733,7 +744,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allrt, allrb, allrbbars, allpacketcount, alllittle\n");
+cat("\tall, allth, allrt, allrb, allrbbars, allpacketcount, alllittle\n");
 cat("\tlorallth, lorallrt, lorallrb\n");
 cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot\n");
@@ -788,6 +799,20 @@ while(1) {
 				else {
 					startDevice(params)
 					plotAllModulesStatistics(data1)
+				}
+			}
+		},
+		allth={
+			if(length(params) != 2)
+				cat("allth usage: allth <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice(params)
+					plotAllModulesThroughput(data1)
 				}
 			}
 		},
