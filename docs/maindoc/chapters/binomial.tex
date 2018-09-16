@@ -118,6 +118,25 @@ Throughput unfairness can also be shown using a Lorenz Curve graph:
 
 In this case we must consider that this measure heavly depends on the CQI distribution: the higher unfairness is shown when \(\lambda\) is high, because \texttt{user[9]} uses all extra RBs, and the lower unfairness is shown for low \(\lambda\) values, where no one has yet reached saturation.
 
+In the following table there is a summary of throughput in \(\lambda_{sat}\) per each user.
+\begin{center}
+	\begin{tabular}{|c | c | c|}
+	\hline
+	 \textbf{user}  & \textbf{\(\lambda_{sat}\)}  & \textbf{throghput [bps]} \\ \hline
+	 0 & 1.1 & $342852 \pm 1028$ \\ \hline
+	 1 & 1.6 & $499580 \pm 1092$\\ \hline
+	 2 & 2.6 & $749257 \pm 2282$\\ \hline
+	 3 & 3.1 & $961496 \pm 2240$\\ \hline
+	 4 & 3.6 & $1123105 \pm 1315$\\ \hline
+	 5 & 4.1 & $1277408 \pm 2667$ \\ \hline
+	 6 & 4.6 & $1435511 \pm 2868$\\ \hline
+	 7 & 5.6 & $1727047 \pm 4506$ \\ \hline
+	 8 & 6.1 & $1904025 \pm 2349$ \\ \hline
+	 9 & 7.6 & $2370866 \pm 1914$ \\ \hline
+	\end{tabular}
+\end{center}
+
+
 Let's now compute the antenna total throughput:
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/thantenna-2.png}
