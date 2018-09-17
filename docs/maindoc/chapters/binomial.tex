@@ -86,13 +86,6 @@ Now let's turn on the BestCQI policy. We are somehow expecting the same base res
   \caption{Binomial scenario - Fair: throughput, response time}
   \label{fig:all-binombest}
 \end{figure}
-
-\begin{figure}[H]
-  \includegraphics[width=1\textwidth]{images/allrt-binombest.png}
-  \caption{Binomial scenario - Fair: response time zoom}
-  \label{fig:allrt-binombest}
-\end{figure}
-
 As we saw before, saturation points are different for each user and depend on CQI mean. However this time each throughput line has an shorter tail w.r.t. the previous experiment results, so this means that we have an higher value around the peak and lower values for higher \(\lambda\). Instead, for \texttt{user[0]} and \texttt{user[9]} there is no difference in line shapes. How can we explain this results?
 
 As \(\lambda\) gets higher, each user come to its saturation point: the first is \texttt{user[0]} which will use some RBs from the other users before reaching the peak, just as we saw in the last chapter. The next user to get to saturation point is \texttt{user[1]}, which will start to reclaim the residual frame and, eventually, start to use RBs from other users. This is also what we saw before, but there is an important difference: \texttt{user[1]} has priority over \texttt{user[0]} when doing the residual frame filling, because it has an higher CQI. This means that \texttt{user[1]} will eventually take \textit{all} the residual RBs for himself at some point, leaving \texttt{user[0]} without extra RBs. In the same way, when \texttt{user[2]} start to reclaim its RBs and then the other users residual frames, it basically takes all extra RBs also from \texttt{user[1]}, and we can continue until \texttt{user[9]}, which, at the end, takes all!
@@ -137,6 +130,14 @@ Throughput unfairness can also be shown using a Lorenz Curve graph:
 \end{figure}
 
 In this case we must consider that this measure heavly depends on the CQI distribution: the higher unfairness is shown when \(\lambda\) is high, because \texttt{user[9]} uses all extra RBs, and the lower unfairness is shown for low \(\lambda\) values, where no one has yet reached saturation.
+
+Now let's take a zoom to the plot of response time. If we compare the following graph with the Binomial Fair one, we note that saturation points are shifted to right. 
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/allrt-binombest.png}
+  \caption{Binomial scenario - BestCQI: response time zoom}
+  \label{fig:allrt-binombest}
+\end{figure}
+As explained before this is due the extra RBs that users with higher mean CQI can use for the frame filling. The most noticeable change is for \texttt{user[9]}. In the Binomial Fair scenario its response time has a spike around \(\lambda = 6.1\), now it is bounded and well defined until \(\lambda = 7.1\)
 
 In the following table there is a summary of throughput in \(\lambda_{sat}\) per each user.
 \begin{center}
