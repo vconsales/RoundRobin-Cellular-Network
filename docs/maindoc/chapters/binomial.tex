@@ -41,7 +41,7 @@ Note that the frame filling policy can have a strong impact on the throughput. L
 \end{itemize}
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/binom_old}
-  \caption{Binomial scenario, Modified scheduler - Simple: throughput, response time}
+  \caption{Binomial scenario, Modified scheduler - Simple: throughput, response time}\
   \label{fig:Binomial scenario - Simple: throughput, response time}
 \end{figure}
 If we consider the \texttt{user[0]} we can notice a very strange behavior. When \(0 < \lambda \leq 1.5\) it has higher throughput and smaller response time than \texttt{user[1]} and \texttt{user[2]} and this seems senseless because \texttt{user[0]} has smaller mean CQI. However this odditity can be explained by observing that, in that range of traffic, \texttt{user[9]} requires a low number of RBs but the frame must be filled and the simple rule \textbf{always} chooses the next user first which is \texttt{user[0]}. When \(\lambda\) increases, \texttt{user[9]} requires more RBs, and the throughput of \texttt{user[0]} decreases.
