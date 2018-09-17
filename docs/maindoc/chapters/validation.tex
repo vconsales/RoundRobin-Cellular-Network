@@ -31,7 +31,7 @@ Let's consider all the simulations with the following parameters:
   \label{fig:1st validation scenario: throughput, response time}
 \end{figure}
 
-\section{2\textsuperscript{nd} test: fixed CQI, fixed \(\lambda\) rate, fixed packet size, 2 users}
+\section{2\textsuperscript{nd} test: fixed CQI, fixed \(\lambda\) rate, fixed packet size, 2 users}\label{Validation-2}
 In this test there are two \texttt{Mobile Stations} connected to antenna. As in the previous scenario all parameters are fixed. We have two indipendent flow of data from \texttt{Web Servers} to \texttt{Antenna} so the input throughtput could by computed as
 \begin{equation} 
 th\textsubscript{in} = \frac{packetsize\textsubscript{0} \times 8}{1/(1000\lambda\textsubscript{0})} + \frac{packetsize\textsubscript{1} \times 8}{1/(1000\lambda\textsubscript{1})}
@@ -82,8 +82,7 @@ E[RT(ST)] &= \frac{\sum\limits^{ST}_{t=0} RT(t)}{ST} = \frac{\sum\limits^{ST}_{t
 	\\ &= \frac{\max(RT)}{ST^2}\frac{ST(ST+1)}{2} = \frac{\max(RT)}{2}\frac{ST+1}{ST} \approx \frac{\max(RT)}{2}
 \end{split}
 \end{equation}
-At the end we can observe that if the system is unstable \(RT(t)\) has a linear behavior so if we calculate the mean at the end of simulation we obtain \(E[RT(ST)] \approx ST/2\). 
-
+At the end we can observe that if the system is unstable \(RT(t)\) has a linear behavior so if we calculate the mean at the end of simulation we obtain \(E[RT(ST)] \approx ST/2\). Note that if the simulation has an infinite duration, \(ST=\infty\), \(E[RT] \rightarrow \infty \) as expected.
 
 \section{3\textsuperscript{rd} test: NoFramingTest, uniform CQI, exponential interarrivals, fixed packet size, 10 users}
 

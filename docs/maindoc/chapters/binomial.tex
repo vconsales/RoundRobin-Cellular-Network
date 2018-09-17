@@ -35,7 +35,14 @@ In this scenario the scheduler is the basic Round Robin scheduler.
 Users have very different throughput as we expected. When \( 0 < \lambda \leq 1\), all users have the same throughput because the traffic is very low and the resources provided by the frame are quite enough to satisfy all users. However this is a very special case, we can see that as \(\lambda\) increases users having lower mean CQIs saturate. The scheduler is always fair but users with higher mean CQIs have bigger RBs inside the frame that can carry more data. Saturation points follow the distribution of CQIs among users, so users with lower CQI, on average, saturate before, otherwise users with higher CQI exploit better the frame and saturate with higher \(\lambda\) rate. 
 By analyzing the throughput plot we observe that users have a small peak near the saturation point and then their throughput decrease and approches to an horizontal line. The explaination is quite easy. If \(\lambda\) rate is \textit{small} users with higher mean CQI use few RBs to empty their queue, so the frame filling algorithm has free RBs to distribute among other users. When \(\lambda\) rate becomes \textit{high} also users with higher mean CQI require the lots of RBs and the effect of residual frame fill is limited. 
 
-Note that the frame filling policy can have a strong impact on the throughput. Let's consider, for example, a different policy: 
+In the previous graph we observe that response time seems to approch to \(ST/2\). As explained in the chapter ~\ref{Validation-2} this strange behavior occurs when response time grows linear to infinity. In order to have a correct sight of what happen to response time we must zoom that plot.
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/allrt-binom}
+  \caption{Binomial scenario - Fair: response time zoom}
+  \label{fig:Binomial scenario - Fair: response time zoom}
+\end{figure}
+
+It is necessary to remark that the frame filling policy can have a strong impact on distribution of the throughput and response time. Let's consider, for example, a different policy: 
 \begin{itemize}
 \item The residual space in the frame is filled by considering all users \(j\), where \(j = (currentUser+1) \bmod n\) and so on, wrapping until user \((j-1) \bmod n\).
 \end{itemize}
