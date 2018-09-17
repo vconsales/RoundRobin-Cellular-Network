@@ -302,10 +302,11 @@ plotAllModulesThroughput <- function(plotdata) {
 plotAllModulesResponseTimes <- function(plotdata) {
 	#nonsaturared_data <- plotdata[abs(plotdata$inputthroughput - plotdata$throughput.mean) < THROUGHPUT_MARGIN,]
 	pt <- getPlotTicks(plotdata)
+	y_max = 0.05
 
 	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
-	geom_line() + scale_x_continuous(breaks=seq(0,pt$rt$x_max,pt$rt$x_tick)) + scale_y_continuous(breaks=seq(0,pt$rt$y_max,round(0.02/20, digits=4))) +
-	coord_cartesian(ylim = c(0, 0.02)) +
+	geom_line() + scale_x_continuous(breaks=seq(0,pt$rt$x_max,pt$rt$x_tick)) + scale_y_continuous(breaks=seq(0,pt$rt$y_max,round(y_max/20, digits=4))) +
+	coord_cartesian(ylim = c(0, y_max)) +
 	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
 
 	plotdown(plot_rt);
