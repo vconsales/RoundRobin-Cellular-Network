@@ -56,7 +56,7 @@ If we consider the \texttt{user[0]} we can notice a very strange behavior. When 
 In this condition the distribution of throughput is absoloutely no fair since there are privileged user, the ones near the antenna, and the others that receives signal of low power so cannot achieve the same throughput.
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/lorallth-binombest.png}
-  \caption{Binomial BestCQI comparison - Throughput - Lorenz Curve}
+  \caption{Binomial Fair - Throughput - Lorenz Curve}
   \label{fig:lorallth-binombest}
 \end{figure}
 
@@ -83,7 +83,7 @@ Now let's turn on the BestCQI policy. We are somehow expecting the same base res
 
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/all-binombest.png}
-  \caption{Binomial scenario - Fair: throughput, response time}
+  \caption{Binomial BestCQI scenario: throughput, response time}
   \label{fig:all-binombest}
 \end{figure}
 As we saw before, saturation points are different for each user and depend on CQI mean. However this time each throughput line has an shorter tail w.r.t. the previous experiment results, so this means that we have an higher value around the peak and lower values for higher \(\lambda\). Instead, for \texttt{user[0]} and \texttt{user[9]} there is no difference in line shapes. How can we explain this results?
@@ -117,7 +117,7 @@ Let's check how simulated resource blocks are distributed among users at rate \(
 RB distribution unfairness can be confirmed also using a Lorenz Curve graph:
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/lorallrb-binombest.png}
-  \caption{Binomial BestCQI comparison - Resource Block - Lorenz Curve}
+  \caption{Binomial BestCQI scheduler - Resource Block - Lorenz Curve}
   \label{fig:lorallrb-binombest}
 \end{figure}
 The graph in \ref{fig:lorallrb-binombest} shows curves for each value of \(\lambda\). We can see that fairness is higher at the end just because \texttt{user[9]} takes all the extra RBs and leaves the other users with nothing that their own RBs, which are of the same count for all (25). On the other hand Fairness is higher when \(\lambda\) is low because first users takes all the extra RBs from the higher CQI users, and the higher CQI users use less RBs due to the very low interarrival rate.
@@ -125,7 +125,7 @@ The graph in \ref{fig:lorallrb-binombest} shows curves for each value of \(\lamb
 Throughput unfairness can also be shown using a Lorenz Curve graph:
 \begin{figure}[H]
   \includegraphics[width=1\textwidth]{images/lorallth-binombest.png}
-  \caption{Binomial BestCQI comparison - Throughput - Lorenz Curve}
+  \caption{Binomial BestCQI scheduler - Throughput - Lorenz Curve}
   \label{fig:lorallth-binombest}
 \end{figure}
 
