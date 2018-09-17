@@ -289,6 +289,23 @@ plotAllModulesStatistics <- function(plotdata) {
 	plotdouble_singlelegend(plot_th, plot_rt);
 }
 
+plotAllModulesStatisticsZoom <- function(plotdata) {
+	pt <- getPlotTicks(plotdata)
+
+	plot_th <- ggplot(plotdata, aes(x=usertraffic, y=throughput.mean, colour=module, group=module)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,pt$th$y_max,pt$th$y_tick)) + scale_x_continuous(breaks=seq(0.1,pt$th$x_max,pt$th$x_tick)) +
+	geom_errorbar(aes(ymin=throughput.confmin, ymax=throughput.confmax, width=.1)) +
+	theme(legend.position="bottom")
+
+	y_max = 0.05
+	plot_rt <- ggplot(plotdata, aes(x=usertraffic, y=responsetime.mean, colour=module, group=module)) +
+	geom_line() + scale_y_continuous(breaks=seq(0,pt$rt$y_max,round(y_max/20, digits=4))) + scale_x_continuous(breaks=seq(0.1,pt$rt$x_max,pt$rt$x_tick)) +
+	coord_cartesian(ylim = c(0, y_max)) +
+	geom_errorbar(aes(ymin=responsetime.confmin, ymax=responsetime.confmax, width=.1))
+
+	plotdouble_singlelegend(plot_th, plot_rt);
+}
+
 plotAllModulesThroughput <- function(plotdata) {
 	pt <- getPlotTicks(plotdata)
 
@@ -759,7 +776,7 @@ parsescenario_scheddata <- list("regr" = preparedRegressionData,
 
 cat("Plot commands:\n");
 cat("\trates,\n");
-cat("\tall, allth, allrt, allrb, allrbbars, allpacketcount, alllittle\n");
+cat("\tall, allzoom, allth, allrt, allrb, allrbbars, allpacketcount, alllittle\n");
 cat("\tlorallth, lorallrt, lorallrb\n");
 cat("\tlittleregr, thsat\n")
 cat("\tth, rb, lorth, lorrb, ecdf, boxplot\n");
@@ -814,6 +831,20 @@ while(1) {
 				else {
 					startDevice(params)
 					plotAllModulesStatistics(data1)
+				}
+			}
+		},
+		allzoom={
+			if(length(params) != 2)
+				cat("allzoom usage: allzoom <scenario>\n")
+			else {
+				data1=parsescenario_data[[ params[2] ]]
+
+				if(is.null(data1))
+					cat("invalid scenario\n")
+				else {
+					startDevice(params)
+					plotAllModulesStatisticsZoom(data1)
 				}
 			}
 		},
