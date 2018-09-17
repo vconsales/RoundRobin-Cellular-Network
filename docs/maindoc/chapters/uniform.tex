@@ -24,6 +24,12 @@ In this simulation we will consider the basic \textbf{Fair Scheduler}. We rememb
 The first thing we can notice is that every client has the same saturation point (which depends on \(\lambda\)): this can be explained considering that scheduler is fair and every client generates, on average, the same amount of packets (which are also the same size on average). Response times are stable before reaching the common saturation point and after tends to arise indefinitely, until reaching a maximum. This maximum is the same shown in the \(2_{nd}\) Validation test and has the same explaination. So the only valid values for Response Times are generated between \(0 < \lambda < \lambda_{sat}\), which is common for each client. 
 
 In the graph we notice that \(\lambda_{sat}=3.1\). If we compare this rate with the maximum rate computed in the 1\textsuperscript{st} Validation Test we observe that \(\lambda_{sat} = \lambda_{max}/10\). This is not surprising since there are 10 \texttt{Web Server} wich push traffic to the Antenna. Each one is a \textit{Poisson process} with rate \(\lambda\) so the superimposition of 10 them is a \textit{Poisson process} with a rate \(\Lambda = 10\lambda\). Actually the system saturates before \(\lambda=3.1\), infact in validation we considered the best case where \(CQI=15\) so RBs had the maximum size. Here \(RB_{size}\) is a RV however \(\lambda_{sat}=3.1\) is a raw approximation confirmed by the results of the simulation.
+In the following plot we can se the trend of response time for \(0 < \lambda < \lambda_{sat}\). It is evident that when the saturation point is reached the response time grows exponentially.
+\begin{figure}[H]
+  \includegraphics[width=1\textwidth]{images/allrt-unif.png}
+   \caption{Uniform scenario: response time zoom}
+  \label{fig:Uniform scenario: response time zoom}
+\end{figure}
 
 The most important result, here, is the antenna total throughput. Lets see:
 \begin{figure}[H]
@@ -73,6 +79,7 @@ We can add another case:
 None of the packets cannot be inserted into the framechunk, so the RB is completely wasted. This is the case that lowers the throughput, due to the fact that packet sizes are small and CQIs are low. However, in our scenarios (Uniform, UniformBest, Binomial ...) the number of users is high enough (10 users) to get, more likely, at least a small packet and/or at least a good enough CQIs to not waste the remaining space.
 
 Note that we have tried to analyze just few cases and do a very raw approximation of antenna total throughput mean value tendency, so we can't make an exact model of the system in order to prove this result analytically.
+
 At the end of simulation we can summarize these results about the Uniform Scenario with Fair Scheduler:
 \begin{itemize}
 	\item Saturation rate \(\lambda = 3.1\)
