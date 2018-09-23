@@ -1,8 +1,10 @@
-Round-robin Cellular network
+Round-robin Cellular Network
 
-progetto Stea - performance evaluation
+Performance Evaluation of Computer Systems and Networks Project AA 2017/2018
 
-autori:
+Simulation of a Cellular Network with Round-robin scheduling through Omnetpp.
+
+Authors:
 Vincenzo Consales
 Vincent Della Corte
 Antonio Le Caldare
